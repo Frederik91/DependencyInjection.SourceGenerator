@@ -1,0 +1,15 @@
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\bin\Debug\net7\CW.SourceGenerator.Demo.deps.json
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\bin\Debug\net7\CW.SourceGenerator.Demo.dll
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\bin\Debug\net7\CW.SourceGenerator.Demo.pdb
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\obj\Debug\net7\CW.SourceGenerator.Demo.csproj.AssemblyReference.cache
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\obj\Debug\net7\CW.SourceGenerator.Demo.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\obj\Debug\net7\CW.SourceGenerator.Demo.AssemblyInfoInputs.cache
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\obj\Debug\net7\CW.SourceGenerator.Demo.AssemblyInfo.cs
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\obj\Debug\net7\CW.SourceGenerator.Demo.csproj.CoreCompileInputs.cache
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\obj\Debug\net7\CW.SourceGenerator.Demo.dll
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\obj\Debug\net7\refint\CW.SourceGenerator.Demo.dll
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\obj\Debug\net7\CW.SourceGenerator.Demo.pdb
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\obj\Debug\net7\ref\CW.SourceGenerator.Demo.dll
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\bin\Debug\net7\CW.SourceGenerator.Contracts.dll
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\bin\Debug\net7\CW.SourceGenerator.Contracts.pdb
+C:\Users\frte\source\repos\CW.SourceGenerator\CW.SourceGenerator.Demo\obj\Debug\net7\CW.SourceGenerator.Demo.csproj.CopyComplete
