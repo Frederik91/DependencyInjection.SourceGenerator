@@ -1,0 +1,3 @@
+is_global = true
+build_property.RootNamespace = DependencyInjection.SourceGenerator.Contracts
+build_property.ProjectDir = C:\Users\frte\source\repos\DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.Contracts\

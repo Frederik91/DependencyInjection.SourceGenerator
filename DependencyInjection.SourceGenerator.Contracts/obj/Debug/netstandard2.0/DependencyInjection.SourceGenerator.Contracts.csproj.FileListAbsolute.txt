@@ -1,0 +1,10 @@
+C:\Users\frte\source\repos\DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.Contracts\bin\Debug\netstandard2.0\DependencyInjection.SourceGenerator.Contracts.deps.json
+C:\Users\frte\source\repos\DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.Contracts\bin\Debug\netstandard2.0\DependencyInjection.SourceGenerator.Contracts.dll
+C:\Users\frte\source\repos\DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.Contracts\bin\Debug\netstandard2.0\DependencyInjection.SourceGenerator.Contracts.pdb
+C:\Users\frte\source\repos\DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.Contracts\obj\Debug\netstandard2.0\DependencyInjection.SourceGenerator.Contracts.csproj.AssemblyReference.cache
+C:\Users\frte\source\repos\DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.Contracts\obj\Debug\netstandard2.0\DependencyInjection.SourceGenerator.Contracts.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\frte\source\repos\DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.Contracts\obj\Debug\netstandard2.0\DependencyInjection.SourceGenerator.Contracts.AssemblyInfoInputs.cache
+C:\Users\frte\source\repos\DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.Contracts\obj\Debug\netstandard2.0\DependencyInjection.SourceGenerator.Contracts.AssemblyInfo.cs
+C:\Users\frte\source\repos\DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.Contracts\obj\Debug\netstandard2.0\DependencyInjection.SourceGenerator.Contracts.csproj.CoreCompileInputs.cache
+C:\Users\frte\source\repos\DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.Contracts\obj\Debug\netstandard2.0\DependencyInjection.SourceGenerator.Contracts.dll
+C:\Users\frte\source\repos\DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.Contracts\obj\Debug\netstandard2.0\DependencyInjection.SourceGenerator.Contracts.pdb
