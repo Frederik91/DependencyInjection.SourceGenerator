@@ -8,7 +8,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<OutputType>Dll</OutputType>
+		<OutputType>library</OutputType>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<PackageId>DependencyInjection.SourceGenerator</PackageId>
 		<Version>0.0.1</Version>
