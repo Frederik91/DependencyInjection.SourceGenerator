@@ -22,6 +22,8 @@ jobs:
         dotnet-version: 7.0.x
     - name: Authenticate nuget feed
       run: dotnet nuget add source --username USERNAME --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/Frederik91/index.json"
+    - name: Authenticate nuget feed
+      run: dotnet nuget add source --username USERNAME --password ${{ secrets.GITHUB_NUGET_ORG }} --store-password-in-clear-text --name nugetorg "https://api.nuget.org/v3/index.json"
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
@@ -33,4 +35,4 @@ jobs:
     - name: Pack Contracts
       run: dotnet pack DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj --configuration Release
     - name: Push
-      run: dotnet nuget push "**/*.*.nupkg" --api-key ${{ secrets.NUGET_ORG }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push "**/*.*.nupkg" --source nugetorg
