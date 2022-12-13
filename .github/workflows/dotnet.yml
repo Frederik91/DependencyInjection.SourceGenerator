@@ -31,6 +31,6 @@ jobs:
     - name: Pack Generator
       run: dotnet pack DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.csproj --configuration Release
     - name: Pack Contracts
-      run: dotnet pack DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.Contracts.csproj --configuration Release
+      run: dotnet pack DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj --configuration Release
     - name: Push
       run: dotnet nuget push "**/*.*.nupkg" --api-key ${{ secrets.GITHUB_NUGET_ORG }} --source https://api.nuget.org/v3/index.json
