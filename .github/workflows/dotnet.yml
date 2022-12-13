@@ -28,7 +28,9 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name: Pack
-      run: dotnet pack --configuration Release
+    - name: Pack Generator
+      run: dotnet pack **/DependencyInjection.SourceGenerator.csproj --configuration Release
+    - name: Pack Contracts
+      run: dotnet pack **/DependencyInjection.SourceGenerator.Contracts.csproj --configuration Release
     - name: Push
-      run: dotnet nuget push "**/*.*.nupkg" --source "github"
+      run: dotnet nuget push "**/*.*.nupkg" --api-key ${{ secrets.GITHUB_NUGET_ORG }} --source https://api.nuget.org/v3/index.json

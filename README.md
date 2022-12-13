@@ -5,7 +5,7 @@ Register services using attributes instead of registering in code.
 Add the "Register" attribute to the class you want to register. The attribute takes a type and a lifetime. The type is the type you want to register and the lifetime is the lifetime of the service. The lifetime is optional and defaults to Transient.
 
 ```csharp
-[Register("ServiceName", Lifetime.Singleton)]
+[Register(ServiceName = "ServiceName", Lifetime = Lifetime.Singleton)]
 public class ExampleService : IExampleService
 {
 	public string GetExample()

@@ -7,9 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceG
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceGenerator.Demo", "DependencyInjection.SourceGenerator.Demo\DependencyInjection.SourceGenerator.Demo.csproj", "{388087C4-88E1-46D4-BD03-67A468F5BD39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DependencyInjection.SourceGenerator.Contracts", "DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj", "{E62B793F-7BD6-410B-BEBF-0E9EDC8BCC28}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceGenerator.Contracts", "DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj", "{E62B793F-7BD6-410B-BEBF-0E9EDC8BCC28}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DependencyInjection.SourceGenerator.Tests", "DependencyInjection.SourceGenerator.Tests\DependencyInjection.SourceGenerator.Tests.csproj", "{67860DF6-1CB5-423A-8D48-B44F2D35939B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceGenerator.Tests", "DependencyInjection.SourceGenerator.Tests\DependencyInjection.SourceGenerator.Tests.csproj", "{67860DF6-1CB5-423A-8D48-B44F2D35939B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Files", "Files", "{5387CF4F-733F-4A71-A82B-D4733964A06A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
