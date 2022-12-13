@@ -42,7 +42,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         context.AddSource("CompositionRoot.g.cs", SourceText.From(sourceText, Encoding.UTF8));
     }
 
-    private static string? GetNamespace(GeneratorExecutionContext context, ClassDeclarationSyntax? compositionRoot)
+    private static string GetNamespace(GeneratorExecutionContext context, ClassDeclarationSyntax? compositionRoot)
     {
         if (compositionRoot?.Parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax)        
             return namespaceDeclarationSyntax.Name.ToString();
