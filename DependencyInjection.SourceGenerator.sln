@@ -12,6 +12,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceGenerator.Tests", "DependencyInjection.SourceGenerator.Tests\DependencyInjection.SourceGenerator.Tests.csproj", "{67860DF6-1CB5-423A-8D48-B44F2D35939B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Files", "Files", "{5387CF4F-733F-4A71-A82B-D4733964A06A}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
