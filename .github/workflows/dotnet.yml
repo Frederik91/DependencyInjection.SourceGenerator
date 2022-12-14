@@ -33,4 +33,4 @@ jobs:
     - name: Pack Contracts
       run: dotnet pack DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj --configuration Release
     - name: Push Package to NuGet.org
-      run: dotnet nuget push **/*.nupkg -k ${{ secrets.NUGET_ORG }} -s https://api.nuget.org/v3/index.json
+      run: dotnet nuget push **/*.nupkg -k ${{secrets.NUGET_ORG}} -s https://api.nuget.org/v3/index.json
