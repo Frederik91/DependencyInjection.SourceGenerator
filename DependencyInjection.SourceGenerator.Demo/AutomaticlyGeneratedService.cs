@@ -3,7 +3,7 @@
 namespace DependencyInjection.SourceGenerator.Demo;
 [GenerateAutomaticInterface]
 [Register]
-internal class AutomaticlyGeneratedService : IAutomaticlyGeneratedService
+internal class AutomaticlyGeneratedService : Service, IAutomaticlyGeneratedService
 {
     public void DoSomething()
     {

@@ -89,13 +89,20 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
             bodyMembers.Add(CreateRegisterServicesCall());
         foreach (var type in classesToRegister)
         {
-            var interfaceName = type.Interfaces.FirstOrDefault()?.ToDisplayString();
-            if (interfaceName is null)
+            var @interface = type.Interfaces.FirstOrDefault();
+            var interfaceName = @interface?.ToDisplayString();
+            if (@interface is null)
             {
                 if (type.BaseType is null || type.BaseType.Kind != SymbolKind.ErrorType)
                     continue;
                 interfaceName = type.ContainingNamespace.ToDisplayString() + "." + type.BaseType.Name;
             }
+            else if (@interface.Kind == SymbolKind.ErrorType && !string.IsNullOrEmpty(interfaceName))            
+                interfaceName = type.ContainingNamespace.ToDisplayString() + "." + interfaceName;
+
+            if (string.IsNullOrEmpty(interfaceName))
+                continue;           
+                
 
             var attribute = type.GetAttributes().FirstOrDefault(x => x.AttributeClass?.Name == nameof(RegisterAttribute) || x.AttributeClass?.Name == nameof(RegisterAttribute).Replace("Attribute", ""));
             if (attribute is null)
