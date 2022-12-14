@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 using System.Text;
 using DependencyInjection.SourceGenerator.Enums;
 using DependencyInjection.SourceGenerator.Attributes;
+using System.Diagnostics;
 
 namespace DependencyInjection.SourceGenerator;
 
@@ -13,6 +14,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 {
     public void Execute(GeneratorExecutionContext context)
     {
+        //Debugger.Launch();
         // Get first existing CompositionRoot class
         var compositionRoot = context.Compilation.SyntaxTrees
             .SelectMany(x => x.GetRoot().DescendantNodes())
@@ -89,7 +91,11 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         {
             var interfaceName = type.Interfaces.FirstOrDefault()?.ToDisplayString();
             if (interfaceName is null)
-                continue;
+            {
+                if (type.BaseType is null || type.BaseType.Kind != SymbolKind.ErrorType)
+                    continue;
+                interfaceName = type.ContainingNamespace.ToDisplayString() + "." + type.BaseType.Name;
+            }
 
             var attribute = type.GetAttributes().FirstOrDefault(x => x.AttributeClass?.Name == nameof(RegisterAttribute) || x.AttributeClass?.Name == nameof(RegisterAttribute).Replace("Attribute", ""));
             if (attribute is null)

@@ -53,6 +53,7 @@ public class DependencyInjectionRegistrationGeneratorTests
         };
 
         tester.ReferenceAssemblies.AddAssemblies(references);
+        tester.TestState.AdditionalReferences.Add(typeof(GenerateAutomaticInterfaceAttribute).Assembly);
         tester.TestState.AdditionalReferences.Add(typeof(Contracts.Attributes.RegisterAttribute).Assembly);
         tester.TestState.AdditionalReferences.Add(typeof(LightInject.IServiceContainer).Assembly);
         
@@ -146,6 +147,37 @@ public class CompositionRoot : ICompositionRoot
     public void Compose(IServiceRegistry serviceRegistry)
     {
         serviceRegistry.Register<DependencyInjection.SourceGenerator.Demo.IService, DependencyInjection.SourceGenerator.Demo.Service>("Test", new PerScopeLifetime());
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
+    }
+
+    [Fact]
+    public async Task CreateCompositionRoot_RegisterService_AutomaticlyGeneratedInterface()
+    {
+        var code = """
+using DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+namespace DependencyInjection.SourceGenerator.Tests;
+[GenerateAutomaticInterface]
+[Register]
+public class AutomaticlyGeneratedService : IAutomaticlyGeneratedService
+{
+    public void DoSomething()
+    {
+    }
+}
+""";
+
+        var expected = _header.Replace("Demo", "Tests") + """
+public class CompositionRoot : ICompositionRoot
+{
+    public void Compose(IServiceRegistry serviceRegistry)
+    {
+        serviceRegistry.Register<DependencyInjection.SourceGenerator.Tests.IAutomaticlyGeneratedService, DependencyInjection.SourceGenerator.Tests.AutomaticlyGeneratedService>(new PerRequestLifeTime());
     }
 }
 """;
