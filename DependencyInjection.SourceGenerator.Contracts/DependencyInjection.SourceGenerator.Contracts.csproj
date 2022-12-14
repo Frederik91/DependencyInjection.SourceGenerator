@@ -10,11 +10,12 @@
 		<OutputType>library</OutputType>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<PackageId>DependencyInjection.SourceGenerator.Contracts</PackageId>
-		<Version>0.0.1</Version>
+		<Version>0.1.0</Version>
 		<Authors>Frederik Tegnander</Authors>
 		<Company>COWI</Company>
 		<PackageDescription>Contains attriubutes to use with DependencyInjection.SourceGenerator</PackageDescription>
 		<RepositoryUrl>https://github.com/Frederik91/DependencyInjection.SourceGenerator</RepositoryUrl>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild> <!-- Generates a package at build -->
 	</PropertyGroup>
 
 </Project>
