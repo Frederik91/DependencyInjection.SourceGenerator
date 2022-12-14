@@ -12,7 +12,7 @@
 		<OutputType>library</OutputType>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<PackageId>DependencyInjection.SourceGenerator</PackageId>
-		<Version>0.1.0</Version>
+		<Version>0.1.1</Version>
 		<Authors>Frederik Tegnander</Authors>
 		<Company>COWI</Company>
 		<PackageTags>LightInject;DependencyInjection;SourceGenerator</PackageTags>
