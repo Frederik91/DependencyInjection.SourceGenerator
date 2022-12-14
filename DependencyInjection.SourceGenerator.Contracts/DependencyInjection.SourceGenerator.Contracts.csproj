@@ -15,6 +15,7 @@
 		<Company>COWI</Company>
 		<PackageDescription>Contains attriubutes to use with DependencyInjection.SourceGenerator</PackageDescription>
 		<RepositoryUrl>https://github.com/Frederik91/DependencyInjection.SourceGenerator</RepositoryUrl>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild> <!-- Generates a package at build -->
 	</PropertyGroup>
 
 </Project>

@@ -28,11 +28,7 @@ jobs:
       run: dotnet build --no-restore --configuration Release
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration Release
-    - name: Pack Generator
-      run: dotnet pack DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.csproj --configuration Release
-    - name: Pack Contracts
-      run: dotnet pack DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj --configuration Release
     - name: Push Package to NuGet.org
-      run: nuget push **/*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
+      run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
     - name: Push Package to GitHub
-      run: dotnet nuget push **/*.nupkg -s github
+      run: dotnet nuget push **\*.nupkg -s github

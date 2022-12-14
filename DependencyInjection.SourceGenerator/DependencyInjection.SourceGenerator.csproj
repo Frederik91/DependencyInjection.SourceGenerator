@@ -5,19 +5,22 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>10</LangVersion>
+		<NoWarn>NU5128</NoWarn>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<OutputType>library</OutputType>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<PackageId>DependencyInjection.SourceGenerator</PackageId>
-		<Version>0.0.2</Version>
+		<Version>0.0.3-001</Version>
 		<Authors>Frederik Tegnander</Authors>
 		<Company>COWI</Company>
 		<PackageDescription>Register services using attributes</PackageDescription>
 		<RepositoryUrl>https://github.com/Frederik91/DependencyInjection.SourceGenerator</RepositoryUrl>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild> <!-- Generates a package at build -->
 		<IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
+		<PrivateAssets>all</PrivateAssets>
+		<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 	</PropertyGroup>
 
 	<ItemGroup>
