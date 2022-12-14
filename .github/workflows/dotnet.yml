@@ -29,6 +29,6 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration Release
     - name: Push Package to NuGet.org
-      run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
+      run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}} -SkipDuplicate
     - name: Push Package to GitHub
-      run: dotnet nuget push **\*.nupkg -s github
+      run: dotnet nuget push **\*.nupkg -s github -SkipDuplicate
