@@ -33,6 +33,6 @@ jobs:
     - name: Pack Contracts
       run: dotnet pack DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj --configuration Release
     - name: Push Package to NuGet.org
-      run: dotnet nuget push **/*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
+      run: nuget push **/*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
     - name: Push Package to GitHub
       run: dotnet nuget push **/*.nupkg -s github
