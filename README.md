@@ -1,8 +1,8 @@
 # DependencyInjection.SourceGenerator
 Register services using attributes instead of registering in code.
 
-## Install dependent packages
-This generator is dependent on [**DependencyInjection.SourceGenerator.Contracts**](https://www.nuget.org/packages/DependencyInjection.SourceGenerator.Contracts) package to be able to use attributes used below.
+## Install contracts package
+This generator needs [**DependencyInjection.SourceGenerator.Contracts**](https://www.nuget.org/packages/DependencyInjection.SourceGenerator.Contracts) package to be able to use attributes used below.
 
 ## Usage
 Add the "Register" attribute to the class you want to register. The attribute takes a type and a lifetime. The type is the type you want to register and the lifetime is the lifetime of the service. The lifetime is optional and defaults to Transient.
