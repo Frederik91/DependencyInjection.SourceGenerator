@@ -31,4 +31,4 @@ jobs:
     - name: Push Package to NuGet.org
       run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}} -SkipDuplicate
     - name: Push Package to GitHub
-      run: dotnet nuget push **\*.nupkg -s github -SkipDuplicate
+      run: nuget push **\*.nupkg -Source github -SkipDuplicate
