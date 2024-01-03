@@ -3,18 +3,22 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33103.201
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceGenerator", "DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.csproj", "{16627481-D144-4178-9E5D-177E4D0DFE81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceGenerator.LightInject", "DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.LightInject.csproj", "{16627481-D144-4178-9E5D-177E4D0DFE81}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceGenerator.Demo", "DependencyInjection.SourceGenerator.Demo\DependencyInjection.SourceGenerator.Demo.csproj", "{388087C4-88E1-46D4-BD03-67A468F5BD39}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceGenerator.LightInject.Demo", "DependencyInjection.SourceGenerator.Demo\DependencyInjection.SourceGenerator.LightInject.Demo.csproj", "{388087C4-88E1-46D4-BD03-67A468F5BD39}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceGenerator.Contracts", "DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj", "{E62B793F-7BD6-410B-BEBF-0E9EDC8BCC28}"
 EndProject
+<<<<<<< Updated upstream
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceGenerator.Tests", "DependencyInjection.SourceGenerator.Tests\DependencyInjection.SourceGenerator.Tests.csproj", "{67860DF6-1CB5-423A-8D48-B44F2D35939B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Files", "Files", "{5387CF4F-733F-4A71-A82B-D4733964A06A}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
 	EndProjectSection
+=======
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceGenerator.LightInject.Tests", "DependencyInjection.SourceGenerator.Tests\DependencyInjection.SourceGenerator.LightInject.Tests.csproj", "{67860DF6-1CB5-423A-8D48-B44F2D35939B}"
+>>>>>>> Stashed changes
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

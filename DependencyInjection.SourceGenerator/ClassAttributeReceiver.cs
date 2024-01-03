@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
 
-namespace DependencyInjection.SourceGenerator;
+namespace DependencyInjection.SourceGenerator.LightInject;
 public class ClassAttributeReceiver : ISyntaxContextReceiver
 {
     private string _expectedAttribute;

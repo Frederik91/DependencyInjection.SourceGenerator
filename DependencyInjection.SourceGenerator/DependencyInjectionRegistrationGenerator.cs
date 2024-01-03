@@ -3,11 +3,16 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
+<<<<<<< Updated upstream
 using DependencyInjection.SourceGenerator.Enums;
 using DependencyInjection.SourceGenerator.Attributes;
 using System.Diagnostics;
+=======
+using DependencyInjection.SourceGenerator.LightInject.Enums;
+using DependencyInjection.SourceGenerator.LightInject.Attributes;
+>>>>>>> Stashed changes
 
-namespace DependencyInjection.SourceGenerator;
+namespace DependencyInjection.SourceGenerator.LightInject;
 
 [Generator]
 public class DependencyInjectionRegistrationGenerator : ISourceGenerator

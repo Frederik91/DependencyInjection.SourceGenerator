@@ -1,7 +1,7 @@
 ﻿using DependencyInjection.SourceGenerator.Contracts.Attributes;
 using DependencyInjection.SourceGenerator.Contracts.Enums;
 
-namespace DependencyInjection.SourceGenerator.Demo;
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
 
 [Register]
 public class Service : IService

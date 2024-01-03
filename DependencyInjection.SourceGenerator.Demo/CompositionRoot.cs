@@ -1,6 +1,6 @@
 ﻿using LightInject;
 
-namespace DependencyInjection.SourceGenerator.Demo;
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
 
 public partial class CompositionRoot
 {

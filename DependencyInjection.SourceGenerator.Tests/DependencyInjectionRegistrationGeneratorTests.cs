@@ -4,11 +4,11 @@ using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
-using VerifyCS = DependencyInjection.SourceGenerator.Tests.CSharpSourceGeneratorVerifier<DependencyInjection.SourceGenerator.DependencyInjectionRegistrationGenerator>;
+using VerifyCS = DependencyInjection.SourceGenerator.LightInject.Tests.CSharpSourceGeneratorVerifier<DependencyInjection.SourceGenerator.LightInject.DependencyInjectionRegistrationGenerator>;
 using Microsoft.CodeAnalysis.Testing;
 using System.ComponentModel.Design;
 
-namespace DependencyInjection.SourceGenerator.Tests;
+namespace DependencyInjection.SourceGenerator.LightInject.Tests;
 
 public class DependencyInjectionRegistrationGeneratorTests
 {
@@ -55,7 +55,7 @@ public class DependencyInjectionRegistrationGeneratorTests
         tester.ReferenceAssemblies.AddAssemblies(references);
         tester.TestState.AdditionalReferences.Add(typeof(GenerateAutomaticInterfaceAttribute).Assembly);
         tester.TestState.AdditionalReferences.Add(typeof(Contracts.Attributes.RegisterAttribute).Assembly);
-        tester.TestState.AdditionalReferences.Add(typeof(LightInject.IServiceContainer).Assembly);
+        tester.TestState.AdditionalReferences.Add(typeof(global::LightInject.IServiceContainer).Assembly);
         
         await tester.RunAsync();
     }
@@ -66,7 +66,7 @@ public class DependencyInjectionRegistrationGeneratorTests
         var code = """
 using DependencyInjection.SourceGenerator.Contracts.Attributes;
 
-namespace DependencyInjection.SourceGenerator.Demo;
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
 
 [Register]
 public class Service : IService {}
@@ -74,7 +74,14 @@ public interface IService {}
 
 """;
 
+<<<<<<< Updated upstream
         var expected = _header + """
+=======
+        var expected = """
+using LightInject;
+
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+>>>>>>> Stashed changes
 public class CompositionRoot : ICompositionRoot
 {
     public void Compose(IServiceRegistry serviceRegistry)
@@ -95,7 +102,7 @@ public class CompositionRoot : ICompositionRoot
 using DependencyInjection.SourceGenerator.Contracts.Attributes;
 using LightInject;
 
-namespace DependencyInjection.SourceGenerator.Demo;
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
 
 [Register]
 public class Service : IService {}
@@ -111,7 +118,14 @@ public partial class CompositionRoot : ICompositionRoot
 
 """;
 
+<<<<<<< Updated upstream
         var expected = _header + """
+=======
+        var expected = """
+using LightInject;
+
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+>>>>>>> Stashed changes
 public partial class CompositionRoot : ICompositionRoot
 {
     public void Compose(IServiceRegistry serviceRegistry)
@@ -133,7 +147,7 @@ public partial class CompositionRoot : ICompositionRoot
 using DependencyInjection.SourceGenerator.Contracts.Attributes;
 using DependencyInjection.SourceGenerator.Contracts.Enums;
 
-namespace DependencyInjection.SourceGenerator.Demo;
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
 
 [Register(Lifetime = Lifetime.Scoped, ServiceName = "Test")]
 public class Service : IService {}
@@ -141,7 +155,14 @@ public interface IService {}
 
 """;
 
+<<<<<<< Updated upstream
         var expected = _header + """
+=======
+        var expected = """
+using LightInject;
+
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+>>>>>>> Stashed changes
 public class CompositionRoot : ICompositionRoot
 {
     public void Compose(IServiceRegistry serviceRegistry)
