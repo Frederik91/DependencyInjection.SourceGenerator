@@ -1,17 +1,13 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
-using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
 
-namespace DependencyInjection.SourceGenerator.LightInject;
-public class ClassAttributeReceiver : ISyntaxContextReceiver
+namespace DependencyInjection.SourceGenerator.Shared;
+public class ClassAttributeReceiver(string expectedAttribute) : ISyntaxContextReceiver
 {
-    private string _expectedAttribute;
-    public ClassAttributeReceiver(string expectedAttribute) => _expectedAttribute = expectedAttribute;
+    private readonly string _expectedAttribute = expectedAttribute;
 
-    public List<INamedTypeSymbol> Classes { get; } = new();
+    public List<INamedTypeSymbol> Classes { get; } = [];
 
     public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
     {
@@ -21,12 +17,10 @@ public class ClassAttributeReceiver : ISyntaxContextReceiver
         if (!HasAttribute(classDeclarationSyntax))
             return;
 
-        INamedTypeSymbol? classSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax) as INamedTypeSymbol;
-        if (classSymbol == null)
+        if (context.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax) is not INamedTypeSymbol classSymbol)
         {
             return;
         }
-
 
         Classes.Add(classSymbol);
     }

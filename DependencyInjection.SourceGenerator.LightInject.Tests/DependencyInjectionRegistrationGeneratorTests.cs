@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Text;
 using System.Text;
 using VerifyCS = DependencyInjection.SourceGenerator.LightInject.Tests.CSharpSourceGeneratorVerifier<DependencyInjection.SourceGenerator.LightInject.DependencyInjectionRegistrationGenerator>;
 using Microsoft.CodeAnalysis.Testing;
-using System.ComponentModel.Design;
 
 namespace DependencyInjection.SourceGenerator.LightInject.Tests;
 
@@ -18,19 +17,12 @@ public class DependencyInjectionRegistrationGeneratorTests
         #nullable enable
         using LightInject;
         
-        namespace DependencyInjection.SourceGenerator.Demo;
+        namespace DependencyInjection.SourceGenerator.LightInject.Demo;
         [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
         
         """;
 
-
-    private static Compilation CreateCompilation(string source)
-            => CSharpCompilation.Create("DependencyInjection.SourceGenerator.Demo",
-                new[] { CSharpSyntaxTree.ParseText(source) },
-                new[] { MetadataReference.CreateFromFile(typeof(DependencyInjectionRegistrationGeneratorTests).GetTypeInfo().Assembly.Location) },
-                new CSharpCompilationOptions(OutputKind.ConsoleApplication));
-
-    private readonly ImmutableArray<string> references = AppDomain.CurrentDomain
+    private readonly ImmutableArray<string> _references = AppDomain.CurrentDomain
     .GetAssemblies()
     .Where(assembly => !assembly.IsDynamic)
     .Select(assembly => assembly.Location)
@@ -52,11 +44,10 @@ public class DependencyInjectionRegistrationGeneratorTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         };
 
-        tester.ReferenceAssemblies.AddAssemblies(references);
-        tester.TestState.AdditionalReferences.Add(typeof(GenerateAutomaticInterfaceAttribute).Assembly);
+        tester.ReferenceAssemblies.AddAssemblies(_references);
         tester.TestState.AdditionalReferences.Add(typeof(Contracts.Attributes.RegisterAttribute).Assembly);
         tester.TestState.AdditionalReferences.Add(typeof(global::LightInject.IServiceContainer).Assembly);
-        
+
         await tester.RunAsync();
     }
 
@@ -74,19 +65,12 @@ public interface IService {}
 
 """;
 
-<<<<<<< Updated upstream
         var expected = _header + """
-=======
-        var expected = """
-using LightInject;
-
-namespace DependencyInjection.SourceGenerator.LightInject.Demo;
->>>>>>> Stashed changes
 public class CompositionRoot : ICompositionRoot
 {
     public void Compose(IServiceRegistry serviceRegistry)
     {
-        serviceRegistry.Register<DependencyInjection.SourceGenerator.Demo.IService, DependencyInjection.SourceGenerator.Demo.Service>(new PerRequestLifeTime());
+        serviceRegistry.Register<DependencyInjection.SourceGenerator.LightInject.Demo.IService, DependencyInjection.SourceGenerator.LightInject.Demo.Service>(new PerRequestLifeTime());
     }
 }
 """;
@@ -118,20 +102,13 @@ public partial class CompositionRoot : ICompositionRoot
 
 """;
 
-<<<<<<< Updated upstream
         var expected = _header + """
-=======
-        var expected = """
-using LightInject;
-
-namespace DependencyInjection.SourceGenerator.LightInject.Demo;
->>>>>>> Stashed changes
 public partial class CompositionRoot : ICompositionRoot
 {
     public void Compose(IServiceRegistry serviceRegistry)
     {
         RegisterServices(serviceRegistry);
-        serviceRegistry.Register<DependencyInjection.SourceGenerator.Demo.IService, DependencyInjection.SourceGenerator.Demo.Service>(new PerRequestLifeTime());
+        serviceRegistry.Register<DependencyInjection.SourceGenerator.LightInject.Demo.IService, DependencyInjection.SourceGenerator.LightInject.Demo.Service>(new PerRequestLifeTime());
     }
 }
 """;
@@ -155,19 +132,12 @@ public interface IService {}
 
 """;
 
-<<<<<<< Updated upstream
         var expected = _header + """
-=======
-        var expected = """
-using LightInject;
-
-namespace DependencyInjection.SourceGenerator.LightInject.Demo;
->>>>>>> Stashed changes
 public class CompositionRoot : ICompositionRoot
 {
     public void Compose(IServiceRegistry serviceRegistry)
     {
-        serviceRegistry.Register<DependencyInjection.SourceGenerator.Demo.IService, DependencyInjection.SourceGenerator.Demo.Service>("Test", new PerScopeLifetime());
+        serviceRegistry.Register<DependencyInjection.SourceGenerator.LightInject.Demo.IService, DependencyInjection.SourceGenerator.LightInject.Demo.Service>("Test", new PerScopeLifetime());
     }
 }
 """;
@@ -177,28 +147,54 @@ public class CompositionRoot : ICompositionRoot
     }
 
     [Fact]
-    public async Task CreateCompositionRoot_RegisterService_AutomaticlyGeneratedInterface()
+    public async Task Register_Specified_ServiceType()
     {
         var code = """
 using DependencyInjection.SourceGenerator.Contracts.Attributes;
+using DependencyInjection.SourceGenerator.Contracts.Enums;
 
-namespace DependencyInjection.SourceGenerator.Tests;
-[GenerateAutomaticInterface]
-[Register]
-public class AutomaticlyGeneratedService : IAutomaticlyGeneratedService
-{
-    public void DoSomething()
-    {
-    }
-}
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+
+[Register(ServiceType = typeof(Service))]
+public class Service : IService {}
+public interface IService {}
+
 """;
 
-        var expected = _header.Replace("Demo", "Tests") + """
+        var expected = _header + """
 public class CompositionRoot : ICompositionRoot
 {
     public void Compose(IServiceRegistry serviceRegistry)
     {
-        serviceRegistry.Register<DependencyInjection.SourceGenerator.Tests.IAutomaticlyGeneratedService, DependencyInjection.SourceGenerator.Tests.AutomaticlyGeneratedService>(new PerRequestLifeTime());
+        serviceRegistry.Register<DependencyInjection.SourceGenerator.LightInject.Demo.Service>(new PerRequestLifeTime());
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
+    }
+
+    [Fact]
+    public async Task Register_NoInteface()
+    {
+        var code = """
+using DependencyInjection.SourceGenerator.Contracts.Attributes;
+using DependencyInjection.SourceGenerator.Contracts.Enums;
+
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+
+[Register]
+public class Service {}
+
+""";
+
+        var expected = _header + """
+public class CompositionRoot : ICompositionRoot
+{
+    public void Compose(IServiceRegistry serviceRegistry)
+    {
+        serviceRegistry.Register<DependencyInjection.SourceGenerator.LightInject.Demo.Service>(new PerRequestLifeTime());
     }
 }
 """;

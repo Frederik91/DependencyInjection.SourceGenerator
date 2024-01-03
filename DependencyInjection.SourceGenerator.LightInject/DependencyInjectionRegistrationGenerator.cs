@@ -3,20 +3,20 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
-<<<<<<< Updated upstream
-using DependencyInjection.SourceGenerator.Enums;
-using DependencyInjection.SourceGenerator.Attributes;
-using System.Diagnostics;
-=======
-using DependencyInjection.SourceGenerator.LightInject.Enums;
-using DependencyInjection.SourceGenerator.LightInject.Attributes;
->>>>>>> Stashed changes
+using DependencyInjection.SourceGenerator.Shared.Attributes;
+using DependencyInjection.SourceGenerator.Shared.Enums;
+using DependencyInjection.SourceGenerator.Shared;
 
 namespace DependencyInjection.SourceGenerator.LightInject;
 
 [Generator]
 public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 {
+    public void Initialize(GeneratorInitializationContext context)
+    {
+        context.RegisterForSyntaxNotifications(() => new ClassAttributeReceiver(nameof(RegisterAttribute)));
+    }
+
     public void Execute(GeneratorExecutionContext context)
     {
         //Debugger.Launch();
@@ -34,22 +34,16 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         }
 
         // If CompositionRoot class exists, get namespace, if not, use root namespace of project
-        var @namespace = GetNamespace(context, compositionRoot);
+        var @namespace = GetDefaultNamespace(context, compositionRoot);
 
-        if (context.SyntaxContextReceiver is not ClassAttributeReceiver receiver)
-        {
-            return;
-        }
-
-        // Get all types with the "Inject" attribute
-        var classesToRegister = receiver.Classes;
+        var classesToRegister = RegistrationCollector.GetTypes(context);
 
         var source = GenerateCompositionRoot(compositionRoot is not null, @namespace, classesToRegister);
         var sourceText = source.ToFullString();
         context.AddSource("CompositionRoot.g.cs", SourceText.From(sourceText, Encoding.UTF8));
     }
 
-    private static string GetNamespace(GeneratorExecutionContext context, ClassDeclarationSyntax? compositionRoot)
+    internal static string GetDefaultNamespace(GeneratorExecutionContext context, ClassDeclarationSyntax? compositionRoot)
     {
         if (compositionRoot?.Parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax)
             return namespaceDeclarationSyntax.Name.ToString();
@@ -75,12 +69,11 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         if (@namespace is not null)
             return @namespace;
 
-        throw new NotSupportedException("Unable to calculate namespace for CompositionRoot");
+        throw new NotSupportedException("Unable to calculate namespace");
     }
 
     public static CompilationUnitSyntax GenerateCompositionRoot(bool userdefinedCompositionRoot, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister)
     {
-
         var modifiers = new List<SyntaxToken>{
                             SyntaxFactory.Token(SyntaxKind.PublicKeyword) };
 
@@ -92,45 +85,14 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         var bodyMembers = new List<ExpressionStatementSyntax>();
         if (userdefinedCompositionRoot)
             bodyMembers.Add(CreateRegisterServicesCall());
+
         foreach (var type in classesToRegister)
         {
-            var @interface = type.Interfaces.FirstOrDefault();
-            var interfaceName = @interface?.ToDisplayString();
-            if (@interface is null)
-            {
-                if (type.BaseType is null || type.BaseType.Kind != SymbolKind.ErrorType)
-                    continue;
-                interfaceName = type.ContainingNamespace.ToDisplayString() + "." + type.BaseType.Name;
-            }
-            else if (@interface.Kind == SymbolKind.ErrorType && !string.IsNullOrEmpty(interfaceName))            
-                interfaceName = type.ContainingNamespace.ToDisplayString() + "." + interfaceName;
+            var registration = RegistrationMapper.CreateRegistration(type);
+            if (registration is null)
+                continue;
 
-            if (string.IsNullOrEmpty(interfaceName))
-                continue;           
-                
-
-            var attribute = type.GetAttributes().FirstOrDefault(x => x.AttributeClass?.Name == nameof(RegisterAttribute) || x.AttributeClass?.Name == nameof(RegisterAttribute).Replace("Attribute", ""));
-            if (attribute is null)
-                throw new ArgumentNullException("RegisterAttribute not found");
-
-            var namedArguments = attribute.NamedArguments;
-
-            var lifetimeArgument = namedArguments.FirstOrDefault(arg => arg.Key == nameof(RegisterAttribute.Lifetime));
-
-            // Get the value of the property
-            var lifetimeText = lifetimeArgument.Value.Value?.ToString() ?? new RegisterAttribute().Lifetime.ToString();
-
-            if (lifetimeText is null)
-                throw new ArgumentNullException("Lifetime not found");
-
-            Enum.TryParse<Lifetime>(lifetimeText, out var lifetime);
-
-            var serviceNameArgument = namedArguments.FirstOrDefault(arg => arg.Key == nameof(RegisterAttribute.ServiceName));
-
-            // Get the value of the property
-            var serviceName = serviceNameArgument.Value.Value?.ToString();
-
-            bodyMembers.Add(CreateServiceRegistration(interfaceName, type.ToDisplayString(), lifetime, serviceName));
+            bodyMembers.Add(CreateServiceRegistration(registration.ServiceType, registration.ImplementationTypeName, registration.Lifetime, registration.ServiceName));
         }
 
         var body = SyntaxFactory.Block(bodyMembers.ToArray());
@@ -225,7 +187,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
                             SyntaxFactory.IdentifierName("serviceRegistry"))))));
     }
 
-    private static ExpressionStatementSyntax CreateServiceRegistration(string service, string implementation, Lifetime lifetime, string? serviceName)
+    private static ExpressionStatementSyntax CreateServiceRegistration(string serviceType, string implementation, Lifetime lifetime, string? serviceName)
     {
         var lifetimeName = lifetime switch
         {
@@ -268,6 +230,21 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
         var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(args));
 
+        SyntaxNodeOrToken[] tokens;
+        if (serviceType == implementation)
+        {
+            tokens = new SyntaxNodeOrToken[] { SyntaxFactory.IdentifierName(implementation) };
+        }
+        else
+        {
+            tokens = new SyntaxNodeOrToken[]
+            {
+                SyntaxFactory.IdentifierName(serviceType),
+                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                SyntaxFactory.IdentifierName(implementation)
+            };
+        }
+
         return SyntaxFactory.ExpressionStatement(
             SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -278,10 +255,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
                     .WithTypeArgumentList(
                         SyntaxFactory.TypeArgumentList(
                             SyntaxFactory.SeparatedList<TypeSyntax>(
-                                new SyntaxNodeOrToken[]{
-                            SyntaxFactory.IdentifierName(service),
-                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.IdentifierName(implementation)})))))
+                                tokens)))))
              .WithArgumentList(argumentList));
     }
 
@@ -290,8 +264,5 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         return compositionRoot.Modifiers.Any(x => x.Text == "partial");
     }
 
-    public void Initialize(GeneratorInitializationContext context)
-    {
-        context.RegisterForSyntaxNotifications(() => new ClassAttributeReceiver(nameof(RegisterAttribute)));
-    }
+
 }

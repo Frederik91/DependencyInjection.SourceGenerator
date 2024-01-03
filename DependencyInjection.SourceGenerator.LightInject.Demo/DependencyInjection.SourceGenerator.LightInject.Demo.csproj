@@ -6,15 +6,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="LightInject" Version="6.6.1" />
+	  <PackageReference Include="LightInject" Version="6.6.4" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj" />
-	</ItemGroup>
-	
-	<ItemGroup>
-		<ProjectReference Include="..\DependencyInjection.SourceGenerator\DependencyInjection.SourceGenerator.LightInject.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	  <ProjectReference Include="..\DependencyInjection.SourceGenerator.LightInject\DependencyInjection.SourceGenerator.LightInject.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 </Project>

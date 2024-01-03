@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DependencyInjection.SourceGenerator.LightInject.Enums;
+namespace DependencyInjection.SourceGenerator.Shared.Enums;
 
 internal enum Lifetime
 {
