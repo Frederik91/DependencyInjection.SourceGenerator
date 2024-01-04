@@ -3,8 +3,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
-using DependencyInjection.SourceGenerator.Shared.Attributes;
-using DependencyInjection.SourceGenerator.Shared.Enums;
+using DependencyInjection.SourceGenerator.Contracts.Attributes;
+using DependencyInjection.SourceGenerator.Contracts.Enums;
 using DependencyInjection.SourceGenerator.Shared;
 
 namespace DependencyInjection.SourceGenerator.LightInject;
@@ -14,7 +14,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 {
     public void Initialize(GeneratorInitializationContext context)
     {
-        context.RegisterForSyntaxNotifications(() => new ClassAttributeReceiver(nameof(RegisterAttribute)));
+        context.RegisterForSyntaxNotifications(() => new ClassAttributeReceiver(nameof(RegisterAttribute), nameof(DecorateAttribute)));
     }
 
     public void Execute(GeneratorExecutionContext context)
@@ -88,10 +88,13 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         foreach (var type in classesToRegister)
         {
             var registration = RegistrationMapper.CreateRegistration(type);
-            if (registration is null)
-                continue;
+            if (registration is not null)
+                bodyMembers.Add(CreateServiceRegistration(registration.ServiceType, registration.ImplementationTypeName, registration.Lifetime, registration.ServiceName));
 
-            bodyMembers.Add(CreateServiceRegistration(registration.ServiceType, registration.ImplementationTypeName, registration.Lifetime, registration.ServiceName));
+            var decoration = DecorationMapper.CreateDecoration(type);
+            if (decoration is not null)
+                bodyMembers.Add(CreateServiceDecoration(decoration.DecoratedTypeName, decoration.DecoratorTypeName));
+
         }
 
         var body = SyntaxFactory.Block(bodyMembers.ToArray());
@@ -116,6 +119,32 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
                         .AddMembers(methodDeclaration);
 
         return Trivia.CreateCompilationUnitSyntax(classDeclaration, @namespace);
+    }
+
+    private static ExpressionStatementSyntax CreateServiceDecoration(string decoratedTypeName, string decoratorTypeName)
+    {
+        SyntaxNodeOrToken[] tokens =
+           [
+               SyntaxFactory.IdentifierName(decoratedTypeName),
+                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                SyntaxFactory.IdentifierName(decoratorTypeName)
+           ];
+
+        var accessExpression = SyntaxFactory.MemberAccessExpression(
+              SyntaxKind.SimpleMemberAccessExpression,
+              SyntaxFactory.IdentifierName("serviceRegistry"),
+              SyntaxFactory.GenericName(
+                  SyntaxFactory.Identifier("Decorate"))
+              .WithTypeArgumentList(
+                  SyntaxFactory.TypeArgumentList(
+                      SyntaxFactory.SeparatedList<TypeSyntax>(tokens))));
+
+        var argumentList = SyntaxFactory.ArgumentList();
+
+        var expression = SyntaxFactory.InvocationExpression(accessExpression)
+              .WithArgumentList(argumentList);
+
+        return SyntaxFactory.ExpressionStatement(expression);
     }
 
     private static ExpressionStatementSyntax CreateRegisterServicesCall()
@@ -148,7 +177,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
                                                        SyntaxFactory.LiteralExpression(
                                                            SyntaxKind.StringLiteralExpression,
                                                            SyntaxFactory.Literal(serviceName!)));
-            
+
             args.Add(serviceNameSyntax);
             args.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
         }

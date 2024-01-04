@@ -1,12 +1,11 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DependencyInjection.SourceGenerator.Shared;
-public class ClassAttributeReceiver(string expectedAttribute) : ISyntaxContextReceiver
+public class ClassAttributeReceiver(params string[] expectedAttributes) : ISyntaxContextReceiver
 {
-    private readonly string _expectedAttribute = expectedAttribute;
-
     public List<INamedTypeSymbol> Classes { get; } = [];
 
     public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
@@ -30,7 +29,7 @@ public class ClassAttributeReceiver(string expectedAttribute) : ISyntaxContextRe
         {
             foreach (var attribute in attributeList.Attributes)
             {
-                if (attribute.Name.ToString() == _expectedAttribute || attribute.Name.ToString() + "Attribute" == _expectedAttribute)
+                if (expectedAttributes.Contains(attribute.Name.ToString()) || expectedAttributes.Contains(attribute.Name.ToString() + "Attribute"))
                     return true;
             }
         }

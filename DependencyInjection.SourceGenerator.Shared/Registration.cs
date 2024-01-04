@@ -1,4 +1,4 @@
-﻿using DependencyInjection.SourceGenerator.Shared.Enums;
+﻿using DependencyInjection.SourceGenerator.Contracts.Enums;
 using System;
 
 namespace DependencyInjection.SourceGenerator.Shared;

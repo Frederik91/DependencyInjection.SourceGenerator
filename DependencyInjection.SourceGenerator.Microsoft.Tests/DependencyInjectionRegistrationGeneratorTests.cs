@@ -61,11 +61,12 @@ public class DependencyInjectionRegistrationGeneratorTests
         tester.ReferenceAssemblies.AddAssemblies(_references);
         tester.TestState.AdditionalReferences.Add(typeof(Contracts.Attributes.RegisterAttribute).Assembly);
         tester.TestState.AdditionalReferences.Add(typeof(global::Microsoft.Extensions.DependencyInjection.IServiceCollection).Assembly);
+        tester.TestState.AdditionalReferences.Add(typeof(global::Scrutor.DecoratedType).Assembly);
         await tester.RunAsync();
     }
 
     [Fact]
-    public async Task CreateCompositionRoot_RegisterService_NoExistingCompositionRoot()
+    public async Task CreateServiceCollectionExtensions_RegisterService()
     {
         var code = """
 using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
@@ -177,6 +178,35 @@ public static class ServiceCollectionExtensions
         }
     }
     """;
+
+        await RunTestAsync(code, expected);
+        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
+    }
+
+    [Fact]
+    public async Task CreateServiceCollectionExtensions_DecorateService()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+[Decorate]
+public class Service : IService {}
+public interface IService {}
+
+""";
+
+        var expected = _header + """
+public static class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        services.Decorate<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service>();
+        return services;
+    }
+}
+""";
 
         await RunTestAsync(code, expected);
         Assert.True(true); // silence warnings, real test happens in the RunAsync() method
