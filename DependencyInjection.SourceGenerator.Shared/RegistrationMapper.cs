@@ -31,11 +31,16 @@ internal static class RegistrationMapper
 
 
         var namedArguments = attribute.NamedArguments;
+        var implementationTypeName = type.ToDisplayString(displayFormat);
 
         var serviceTypeArgument = namedArguments.FirstOrDefault(arg => arg.Key == nameof(RegisterAttribute.ServiceType));
         if (serviceTypeArgument.Value.Value is INamedTypeSymbol serviceType)
-        {
-            serviceTypeName = type.ToDisplayString(displayFormat);
+        {            
+            serviceTypeName = serviceType.ToDisplayString(displayFormat);
+            if (serviceType.IsGenericType 
+                && type.IsGenericType 
+                && serviceType.ConstructUnboundGenericType().ToDisplayString(displayFormat) == type.ConstructUnboundGenericType().ToDisplayString(displayFormat))
+                implementationTypeName = serviceTypeName;
         }
 
         if (serviceTypeName is null)
@@ -58,7 +63,7 @@ internal static class RegistrationMapper
 
         return new Registration
         {
-            ImplementationTypeName = type.ToDisplayString(displayFormat),
+            ImplementationTypeName = implementationTypeName,
             Lifetime = lifetime,
             ServiceName = serviceName,
             ServiceType = serviceTypeName

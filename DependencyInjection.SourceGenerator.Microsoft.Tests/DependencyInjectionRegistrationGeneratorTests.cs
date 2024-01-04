@@ -133,8 +133,8 @@ public static class ServiceCollectionExtensions
 
     namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
 
-    [Register(ServiceType = typeof(Service))]
-    public class Service : IService {}
+    [Register(ServiceType = typeof(Service<string>))]
+    public class Service<T> : IService {}
     public interface IService {}
 
     """;
@@ -144,7 +144,7 @@ public static class ServiceCollectionExtensions
     {
         public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
         {
-            services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service>();
+            services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service<string>>();
             return services;
         }
     }
