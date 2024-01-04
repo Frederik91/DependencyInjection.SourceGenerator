@@ -9,17 +9,19 @@ internal static class RegistrationMapper
 {
     internal static Registration? CreateRegistration(INamedTypeSymbol type)
     {
+        var displayFormat = SymbolDisplayFormat.FullyQualifiedFormat;
+
         var @interface = type.Interfaces.FirstOrDefault();
-        var serviceTypeName = @interface?.ToDisplayString();
+        var serviceTypeName = @interface?.ToDisplayString(displayFormat);
         if (@interface is null)
         {
             if (type.BaseType is null || type.BaseType.Kind != SymbolKind.ErrorType)
-                serviceTypeName = type.ToDisplayString();
+                serviceTypeName = type.ToDisplayString(displayFormat);
             else
-                serviceTypeName = type.ContainingNamespace.ToDisplayString() + "." + type.BaseType.Name;
+                serviceTypeName = type.ContainingNamespace.ToDisplayString(displayFormat) + "." + type.BaseType.Name;
         }
         else if (@interface.Kind == SymbolKind.ErrorType && !string.IsNullOrEmpty(serviceTypeName))
-            serviceTypeName = type.ContainingNamespace.ToDisplayString() + "." + serviceTypeName;
+            serviceTypeName = type.ContainingNamespace.ToDisplayString(displayFormat) + "." + serviceTypeName;
 
         var attribute = type.GetAttributes().FirstOrDefault(x => x.AttributeClass?.Name == nameof(RegisterAttribute) || x.AttributeClass?.Name == nameof(RegisterAttribute).Replace("Attribute", ""));
         if (attribute is null)
@@ -30,7 +32,7 @@ internal static class RegistrationMapper
         var serviceTypeArgument = namedArguments.FirstOrDefault(arg => arg.Key == nameof(RegisterAttribute.ServiceType));
         if (serviceTypeArgument.Value.Value is INamedTypeSymbol serviceType)
         {
-            serviceTypeName = type.ToDisplayString();
+            serviceTypeName = type.ToDisplayString(displayFormat);
         }
 
         if (serviceTypeName is null)
@@ -53,7 +55,7 @@ internal static class RegistrationMapper
 
         return new Registration
         {
-            ImplementationTypeName = type.ToDisplayString(),
+            ImplementationTypeName = type.ToDisplayString(displayFormat),
             Lifetime = lifetime,
             ServiceName = serviceName,
             ServiceType = serviceTypeName

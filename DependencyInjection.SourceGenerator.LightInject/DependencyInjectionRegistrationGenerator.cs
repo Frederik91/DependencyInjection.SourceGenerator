@@ -74,13 +74,12 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
     public static CompilationUnitSyntax GenerateCompositionRoot(bool userdefinedCompositionRoot, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister)
     {
-        var modifiers = new List<SyntaxToken>{
-                            SyntaxFactory.Token(SyntaxKind.PublicKeyword) };
+        var modifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
 
         if (userdefinedCompositionRoot)
-            modifiers.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
+            modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
 
-        var classModifiers = SyntaxFactory.TokenList(modifiers.ToArray());
+        var classModifiers = SyntaxFactory.TokenList(modifiers);
 
         var bodyMembers = new List<ExpressionStatementSyntax>();
         if (userdefinedCompositionRoot)
@@ -97,82 +96,26 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
         var body = SyntaxFactory.Block(bodyMembers.ToArray());
 
-        var trivia = CreateTrivia();
-        var excludeFromCodeCoverageSyntax = CreateExcludeFromCodeCoverage();
 
-        return SyntaxFactory.CompilationUnit()
-        .WithUsings(
-            SyntaxFactory.SingletonList<UsingDirectiveSyntax>(
-                SyntaxFactory.UsingDirective(
-                    SyntaxFactory.IdentifierName("LightInject"))
-                .WithUsingKeyword(trivia)))
-        .WithMembers(
-            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
-                SyntaxFactory.FileScopedNamespaceDeclaration(SyntaxFactory.IdentifierName(@namespace))
-                .WithMembers(
-                    SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
-                        SyntaxFactory.ClassDeclaration("CompositionRoot")
-                        .WithAttributeLists(excludeFromCodeCoverageSyntax)
+        var serviceRegistryType = CreateServiceRegistrySyntax("IServiceRegistry");
+
+        var methodParameter = SyntaxFactory.Parameter(SyntaxFactory.Identifier("serviceRegistry"))
+                                            .WithType(serviceRegistryType);
+
+        var methodDeclaration = SyntaxFactory.MethodDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)), SyntaxFactory.Identifier("Compose"))
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+                                .AddParameterListParameters(methodParameter)
+                                .WithBody(body);
+
+        var compositionRootSyntax = CreateServiceRegistrySyntax("ICompositionRoot");
+        var baseType = SyntaxFactory.SimpleBaseType(compositionRootSyntax);
+
+        var classDeclaration = SyntaxFactory.ClassDeclaration("CompositionRoot")
                         .WithModifiers(classModifiers)
-                        .WithBaseList(
-                            SyntaxFactory.BaseList(
-                                SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
-                                    SyntaxFactory.SimpleBaseType(
-                                        SyntaxFactory.IdentifierName("ICompositionRoot")))))
-                        .WithMembers(
-                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
-                                SyntaxFactory.MethodDeclaration(
-                                    SyntaxFactory.PredefinedType(
-                                        SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                                    SyntaxFactory.Identifier("Compose"))
-                                .WithModifiers(
-                                    SyntaxFactory.TokenList(
-                                        SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                                .WithParameterList(
-                                    SyntaxFactory.ParameterList(
-                                        SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
-                                            SyntaxFactory.Parameter(
-                                                SyntaxFactory.Identifier("serviceRegistry"))
-                                            .WithType(
-                                                SyntaxFactory.IdentifierName("IServiceRegistry")))))
-                                .WithBody(body)))))))
-        .NormalizeWhitespace();
-    }
+                        .AddBaseListTypes(baseType)
+                        .AddMembers(methodDeclaration);
 
-    private static SyntaxList<AttributeListSyntax> CreateExcludeFromCodeCoverage()
-    {
-        return SyntaxFactory.SingletonList(
-    SyntaxFactory.AttributeList(
-        SyntaxFactory.SingletonSeparatedList(
-            SyntaxFactory.Attribute(
-                SyntaxFactory.QualifiedName(
-                    SyntaxFactory.QualifiedName(
-                        SyntaxFactory.QualifiedName(
-                            SyntaxFactory.AliasQualifiedName(
-                                SyntaxFactory.IdentifierName(
-                                    SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                SyntaxFactory.IdentifierName("System")),
-                            SyntaxFactory.IdentifierName("Diagnostics")),
-                        SyntaxFactory.IdentifierName("CodeAnalysis")),
-                    SyntaxFactory.IdentifierName("ExcludeFromCodeCoverage"))))));
-    }
-
-    private static SyntaxToken CreateTrivia()
-    {
-        return SyntaxFactory.Token(
-                SyntaxFactory.TriviaList(
-                    new[]{
-                        SyntaxFactory.Comment("// <auto-generated/>"),
-                        SyntaxFactory.Trivia(
-                            SyntaxFactory.PragmaWarningDirectiveTrivia(
-                                SyntaxFactory.Token(SyntaxKind.DisableKeyword),
-                                true)),
-                        SyntaxFactory.Trivia(
-                            SyntaxFactory.NullableDirectiveTrivia(
-                                SyntaxFactory.Token(SyntaxKind.EnableKeyword),
-                                true))}),
-                SyntaxKind.UsingKeyword,
-                SyntaxFactory.TriviaList());
+        return Trivia.CreateCompilationUnitSyntax(classDeclaration, @namespace);
     }
 
     private static ExpressionStatementSyntax CreateRegisterServicesCall()
@@ -197,24 +140,6 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
             _ => throw new ArgumentOutOfRangeException(nameof(lifetime), lifetime, null)
         };
 
-        SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                                                        new SyntaxNodeOrToken[]{
-                                                    SyntaxFactory.Argument(
-                                                        SyntaxFactory.ObjectCreationExpression(
-                                                            SyntaxFactory.IdentifierName("PerRequestLifetime"))
-                                                        .WithArgumentList(
-                                                            SyntaxFactory.ArgumentList())),
-                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                    SyntaxFactory.Argument(
-                                                        SyntaxFactory.LiteralExpression(
-                                                            SyntaxKind.StringLiteralExpression,
-                                                            SyntaxFactory.Literal("Test")))});
-
-        var lifetimeSyntax = SyntaxFactory.Argument(
-                                SyntaxFactory.ObjectCreationExpression(
-                                    SyntaxFactory.IdentifierName(lifetimeName))
-                                .WithArgumentList(
-                                    SyntaxFactory.ArgumentList()));
 
         var args = new List<SyntaxNodeOrToken>();
         if (!string.IsNullOrEmpty(serviceName))
@@ -223,26 +148,33 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
                                                        SyntaxFactory.LiteralExpression(
                                                            SyntaxKind.StringLiteralExpression,
                                                            SyntaxFactory.Literal(serviceName!)));
+            
             args.Add(serviceNameSyntax);
             args.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
         }
-        args.Add(lifetimeSyntax);
+
+        var lifetimeIdentifierSyntax = CreateServiceRegistrySyntax(lifetimeName);
+        var lifetimeSyntaxArgument = SyntaxFactory.Argument(
+            SyntaxFactory.ObjectCreationExpression(lifetimeIdentifierSyntax)
+                .WithArgumentList(SyntaxFactory.ArgumentList()));
+
+        args.Add(lifetimeSyntaxArgument);
 
         var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(args));
 
         SyntaxNodeOrToken[] tokens;
         if (serviceType == implementation)
         {
-            tokens = new SyntaxNodeOrToken[] { SyntaxFactory.IdentifierName(implementation) };
+            tokens = [SyntaxFactory.IdentifierName(implementation)];
         }
         else
         {
-            tokens = new SyntaxNodeOrToken[]
-            {
+            tokens =
+            [
                 SyntaxFactory.IdentifierName(serviceType),
                 SyntaxFactory.Token(SyntaxKind.CommaToken),
                 SyntaxFactory.IdentifierName(implementation)
-            };
+            ];
         }
 
         return SyntaxFactory.ExpressionStatement(
@@ -264,5 +196,18 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         return compositionRoot.Modifiers.Any(x => x.Text == "partial");
     }
 
+    internal static QualifiedNameSyntax CreateServiceRegistrySyntax(string className)
+    {
+        return SyntaxFactory.QualifiedName(
+            SyntaxFactory.AliasQualifiedName(
+                SyntaxFactory.IdentifierName(
+                    SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                SyntaxFactory.IdentifierName("LightInject")),
+            SyntaxFactory.IdentifierName(className));
 
+        //var attribute = SyntaxFactory.Attribute(name);
+        //var attributeList = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attribute));
+
+        //return SyntaxFactory.SingletonList(attributeList);
+    }
 }

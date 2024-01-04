@@ -54,11 +54,6 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
     public static CompilationUnitSyntax GenerateExtensionMethod(string extensionName, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister)
     {
-        var modifiers = new List<SyntaxToken>{
-                            SyntaxFactory.Token(SyntaxKind.PublicKeyword) };
-
-        var classModifiers = SyntaxFactory.TokenList(modifiers.ToArray());
-
         var bodyMembers = new List<ExpressionStatementSyntax>();
 
         foreach (var type in classesToRegister)
@@ -67,51 +62,24 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
             if (registration is null)
                 continue;
 
-            //bodyMembers.Add(CreateRegistrationSyntax(registration.ServiceType, registration.ImplementationTypeName, registration.Lifetime, registration.ServiceName));
+            bodyMembers.Add(CreateRegistrationSyntax(registration.ServiceType, registration.ImplementationTypeName, registration.Lifetime, registration.ServiceName));
         }
 
-        var body = SyntaxFactory.Block(bodyMembers.ToArray());
-
-
-
-        var namespaceDeclaration = SyntaxFactory.FileScopedNamespaceDeclaration(SyntaxFactory.IdentifierName(@namespace));
-        var trivia = CreateTrivia();
-        var excludeFromCodeCoverageSyntax = CreateExcludeFromCodeCoverage();
+        var modifiers = SyntaxFactory.TokenList([SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)]);
 
         var serviceCollectionSyntax = SyntaxFactory.QualifiedName(
-                                    SyntaxFactory.QualifiedName(
-                                        SyntaxFactory.QualifiedName(
-                                            SyntaxFactory.AliasQualifiedName(
-                                                SyntaxFactory.IdentifierName(
-                                                    SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                                SyntaxFactory.IdentifierName("Microsoft")),
-                                            SyntaxFactory.IdentifierName("Extensions")),
-                                        SyntaxFactory.IdentifierName("DependencyInjection")),
-                                    SyntaxFactory.IdentifierName("IServiceCollection"));
+                            SyntaxFactory.QualifiedName(
+                                SyntaxFactory.QualifiedName(
+                                    SyntaxFactory.AliasQualifiedName(
+                                        SyntaxFactory.IdentifierName(
+                                            SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                                        SyntaxFactory.IdentifierName("Microsoft")),
+                                    SyntaxFactory.IdentifierName("Extensions")),
+                                SyntaxFactory.IdentifierName("DependencyInjection")),
+                            SyntaxFactory.IdentifierName("IServiceCollection"));
 
-        var returnStatement = SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName("services"));
-        body = body.AddStatements(returnStatement);
-
-        return SyntaxFactory.CompilationUnit()
-
-            .WithMembers(
-                SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
-                    SyntaxFactory.ClassDeclaration("ServiceExtensions")
-                    .WithModifiers(
-                        SyntaxFactory.TokenList(
-                            [
-                                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                                SyntaxFactory.Token(SyntaxKind.StaticKeyword)
-                            ]))
-                    .WithMembers(
-                        SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
-                            SyntaxFactory.MethodDeclaration(serviceCollectionSyntax, SyntaxFactory.Identifier("AddQueryHandlers"))
-                            .WithModifiers(
-                                SyntaxFactory.TokenList(
-                                    [
-                                        SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                                        SyntaxFactory.Token(SyntaxKind.StaticKeyword)
-                                    ]))
+        var methodDeclaration = SyntaxFactory.MethodDeclaration(serviceCollectionSyntax, SyntaxFactory.Identifier("AddQueryHandlers"))
+                            .WithModifiers(SyntaxFactory.TokenList(modifiers))
                             .WithParameterList(
                                 SyntaxFactory.ParameterList(
                                     SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
@@ -120,46 +88,30 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
                                         .WithModifiers(
                                             SyntaxFactory.TokenList(
                                                 SyntaxFactory.Token(SyntaxKind.ThisKeyword)))
-                                        .WithType(serviceCollectionSyntax))))
-                             .WithBody(body)))))
-                .NormalizeWhitespace();
-    }
+                                        .WithType(serviceCollectionSyntax))));
 
-    private static SyntaxList<AttributeListSyntax> CreateExcludeFromCodeCoverage()
-    {
-        return SyntaxFactory.SingletonList(
-    SyntaxFactory.AttributeList(
-        SyntaxFactory.SingletonSeparatedList(
-            SyntaxFactory.Attribute(
-                SyntaxFactory.QualifiedName(
-                    SyntaxFactory.QualifiedName(
-                        SyntaxFactory.QualifiedName(
-                            SyntaxFactory.AliasQualifiedName(
-                                SyntaxFactory.IdentifierName(
-                                    SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                SyntaxFactory.IdentifierName("System")),
-                            SyntaxFactory.IdentifierName("Diagnostics")),
-                        SyntaxFactory.IdentifierName("CodeAnalysis")),
-                    SyntaxFactory.IdentifierName("ExcludeFromCodeCoverage"))))));
-    }
 
-    private static SyntaxToken CreateTrivia()
-    {
-        return SyntaxFactory.Token(
-                SyntaxFactory.TriviaList(
-                    [
-                        SyntaxFactory.Comment("// <auto-generated/>"),
-                        SyntaxFactory.Trivia(
-                            SyntaxFactory.PragmaWarningDirectiveTrivia(
-                                SyntaxFactory.Token(SyntaxKind.DisableKeyword),
-                                true)),
-                        SyntaxFactory.Trivia(
-                            SyntaxFactory.NullableDirectiveTrivia(
-                                SyntaxFactory.Token(SyntaxKind.EnableKeyword),
-                                true))
-                    ]),
-                SyntaxKind.UsingKeyword,
-                SyntaxFactory.TriviaList());
+        var body = SyntaxFactory.Block(bodyMembers.ToArray());
+        var returnStatement = SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName("services"));
+        body = body.AddStatements(returnStatement);
+
+        methodDeclaration = methodDeclaration.WithBody(body);
+
+        var classDeclaration = SyntaxFactory.ClassDeclaration("ServiceCollectionExtensions")
+                    .WithModifiers(modifiers)
+                    .WithMembers(SyntaxFactory.SingletonList<MemberDeclarationSyntax>(methodDeclaration));
+
+        var dependencyInjectionUsingDirective = SyntaxFactory.UsingDirective(
+            SyntaxFactory.QualifiedName(
+            SyntaxFactory.QualifiedName(
+                SyntaxFactory.AliasQualifiedName(
+                    SyntaxFactory.IdentifierName(
+                        SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                    SyntaxFactory.IdentifierName("Microsoft")),
+                SyntaxFactory.IdentifierName("Extensions")),
+            SyntaxFactory.IdentifierName("DependencyInjection")));
+
+        return Trivia.CreateCompilationUnitSyntax(classDeclaration, @namespace, [dependencyInjectionUsingDirective]);
     }
 
     private static ExpressionStatementSyntax CreateRegisterServicesCall()
@@ -176,73 +128,22 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
     private static ExpressionStatementSyntax CreateRegistrationSyntax(string serviceType, string implementation, Lifetime lifetime, string? serviceName)
     {
-        var lifetimeName = lifetime switch
-        {
-            Lifetime.Singleton => "PerContainerLifetime",
-            Lifetime.Scoped => "PerScopeLifetime",
-            Lifetime.Transient => "PerRequestLifeTime",
-            _ => throw new ArgumentOutOfRangeException(nameof(lifetime), lifetime, null)
-        };
+        var accessExpression = SyntaxFactory.MemberAccessExpression(
+              SyntaxKind.SimpleMemberAccessExpression,
+              SyntaxFactory.IdentifierName("services"),
+              SyntaxFactory.GenericName(
+                  SyntaxFactory.Identifier("AddTransient"))
+              .WithTypeArgumentList(
+                  SyntaxFactory.TypeArgumentList(
+                      SyntaxFactory.SeparatedList<TypeSyntax>(
+                          new SyntaxNodeOrToken[]{
+                                SyntaxFactory.IdentifierName(serviceType),
+                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                SyntaxFactory.IdentifierName(implementation)}))));
 
-        SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                                                        new SyntaxNodeOrToken[]{
-                                                    SyntaxFactory.Argument(
-                                                        SyntaxFactory.ObjectCreationExpression(
-                                                            SyntaxFactory.IdentifierName("PerRequestLifetime"))
-                                                        .WithArgumentList(
-                                                            SyntaxFactory.ArgumentList())),
-                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                    SyntaxFactory.Argument(
-                                                        SyntaxFactory.LiteralExpression(
-                                                            SyntaxKind.StringLiteralExpression,
-                                                            SyntaxFactory.Literal("Test")))});
+        var expression = SyntaxFactory.InvocationExpression(accessExpression)
+              .WithArgumentList(SyntaxFactory.ArgumentList());
 
-        var lifetimeSyntax = SyntaxFactory.Argument(
-                                SyntaxFactory.ObjectCreationExpression(
-                                    SyntaxFactory.IdentifierName(lifetimeName))
-                                .WithArgumentList(
-                                    SyntaxFactory.ArgumentList()));
-
-        var args = new List<SyntaxNodeOrToken>();
-        if (!string.IsNullOrEmpty(serviceName))
-        {
-            var serviceNameSyntax = SyntaxFactory.Argument(
-                                                       SyntaxFactory.LiteralExpression(
-                                                           SyntaxKind.StringLiteralExpression,
-                                                           SyntaxFactory.Literal(serviceName!)));
-            args.Add(serviceNameSyntax);
-            args.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
-        }
-        args.Add(lifetimeSyntax);
-
-        var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(args));
-
-        SyntaxNodeOrToken[] tokens;
-        if (serviceType == implementation)
-        {
-            tokens = [SyntaxFactory.IdentifierName(implementation)];
-        }
-        else
-        {
-            tokens =
-            [
-                SyntaxFactory.IdentifierName(serviceType),
-                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                SyntaxFactory.IdentifierName(implementation)
-            ];
-        }
-
-        return SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName("serviceRegistry"),
-                    SyntaxFactory.GenericName(
-                        SyntaxFactory.Identifier("Register"))
-                    .WithTypeArgumentList(
-                        SyntaxFactory.TypeArgumentList(
-                            SyntaxFactory.SeparatedList<TypeSyntax>(
-                                tokens)))))
-             .WithArgumentList(argumentList));
+        return SyntaxFactory.ExpressionStatement(expression);
     }
 }
