@@ -3,9 +3,7 @@ using System;
 
 namespace DependencyInjection.SourceGenerator.Contracts.Attributes;
 
-public class RegisterAttribute : Attribute
+public class DecorateAttribute : Attribute
 {
-    public Lifetime Lifetime { get; set; } = Lifetime.Transient;
-    public string? ServiceName { get; set; }
     public Type? ServiceType { get; set; }
 }
