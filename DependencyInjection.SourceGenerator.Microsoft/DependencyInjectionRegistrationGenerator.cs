@@ -78,7 +78,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
                                 SyntaxFactory.IdentifierName("DependencyInjection")),
                             SyntaxFactory.IdentifierName("IServiceCollection"));
 
-        var methodDeclaration = SyntaxFactory.MethodDeclaration(serviceCollectionSyntax, SyntaxFactory.Identifier("AddQueryHandlers"))
+        var methodDeclaration = SyntaxFactory.MethodDeclaration(serviceCollectionSyntax, SyntaxFactory.Identifier(extensionName))
                             .WithModifiers(SyntaxFactory.TokenList(modifiers))
                             .WithParameterList(
                                 SyntaxFactory.ParameterList(
@@ -128,21 +128,61 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
     private static ExpressionStatementSyntax CreateRegistrationSyntax(string serviceType, string implementation, Lifetime lifetime, string? serviceName)
     {
+        var keyed = serviceName is null ? string.Empty : "Keyed";
+       var lifetimeName = lifetime switch
+       {
+           Lifetime.Singleton => $"Singleton",
+           Lifetime.Scoped => "Scoped",
+           Lifetime.Transient => "Transient",
+           _ => throw new ArgumentOutOfRangeException(nameof(lifetime), lifetime, null)
+       };
+        var methodName = $"Add{keyed}{lifetimeName}";
+
+        SyntaxNodeOrToken[] tokens;
+        if (serviceType == implementation)
+        {
+            tokens = [SyntaxFactory.IdentifierName(implementation)];
+        }
+        else
+        {
+            tokens =
+            [
+                SyntaxFactory.IdentifierName(serviceType),
+                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                SyntaxFactory.IdentifierName(implementation)
+            ];
+        }
+
         var accessExpression = SyntaxFactory.MemberAccessExpression(
               SyntaxKind.SimpleMemberAccessExpression,
               SyntaxFactory.IdentifierName("services"),
               SyntaxFactory.GenericName(
-                  SyntaxFactory.Identifier("AddTransient"))
+                  SyntaxFactory.Identifier(methodName))
               .WithTypeArgumentList(
                   SyntaxFactory.TypeArgumentList(
-                      SyntaxFactory.SeparatedList<TypeSyntax>(
-                          new SyntaxNodeOrToken[]{
-                                SyntaxFactory.IdentifierName(serviceType),
-                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                SyntaxFactory.IdentifierName(implementation)}))));
+                      SyntaxFactory.SeparatedList<TypeSyntax>(tokens))));
+
+        var argumentList = SyntaxFactory.ArgumentList();
+        if (serviceName is not null)
+        {
+            argumentList = SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.StringLiteralExpression,
+                                        SyntaxFactory.Literal(serviceName)))));
+
+        }
+
+        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.StringLiteralExpression,
+                                        SyntaxFactory.Literal("Test")))));
 
         var expression = SyntaxFactory.InvocationExpression(accessExpression)
-              .WithArgumentList(SyntaxFactory.ArgumentList());
+              .WithArgumentList(argumentList);
 
         return SyntaxFactory.ExpressionStatement(expression);
     }

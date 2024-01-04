@@ -81,7 +81,7 @@ public interface IService {}
         var expected = _header + """
 public static class ServiceCollectionExtensions
 {
-    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddQueryHandlers(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
     {
         services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service>();
         return services;
@@ -93,127 +93,92 @@ public static class ServiceCollectionExtensions
         Assert.True(true); // silence warnings, real test happens in the RunAsync() method
     }
 
-//    [Fact]
-//    public async Task CreateCompositionRoot_RegisterService_ExistingCompositionRoot()
-//    {
-//        var code = """
-//using DependencyInjection.SourceGenerator.Contracts.Attributes;
-//using LightInject;
+    [Fact]
+    public async Task Register_ScopedLifetime_And_ServiceName()
+    {
+        var code = """
+    using DependencyInjection.SourceGenerator.Contracts.Attributes;
+    using DependencyInjection.SourceGenerator.Contracts.Enums;
 
-//namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+    namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
 
-//[Register]
-//public class Service : IService {}
-//public interface IService {}
+    [Register(Lifetime = Lifetime.Scoped, ServiceName = "Test")]
+    public class Service : IService {}
+    public interface IService {}
 
-//public partial class CompositionRoot : ICompositionRoot
-//{
-//    public static void RegisterServices(IServiceRegistry serviceRegistry)
-//    {
-        
-//    } 
-//}
+    """;
 
-//""";
+        var expected = _header + """
+    public static class ServiceCollectionExtensions
+    {
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+        {
+            services.AddKeyedScoped<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service>("Test");
+            return services;
+        }
+    }
+    """;
 
-//        var expected = _header + """
-//public partial class CompositionRoot : ICompositionRoot
-//{
-//    public void Compose(IServiceRegistry serviceRegistry)
-//    {
-//        RegisterServices(serviceRegistry);
-//        serviceRegistry.Register<DependencyInjection.SourceGenerator.LightInject.Demo.IService, DependencyInjection.SourceGenerator.LightInject.Demo.Service>(new PerRequestLifeTime());
-//    }
-//}
-//""";
+        await RunTestAsync(code, expected);
+        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
+    }
 
-//        await RunTestAsync(code, expected);
-//        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
-//    }
+    [Fact]
+    public async Task Register_Specified_ServiceType()
+    {
+        var code = """
+    using DependencyInjection.SourceGenerator.Contracts.Attributes;
+    using DependencyInjection.SourceGenerator.Contracts.Enums;
 
-//    [Fact]
-//    public async Task Register_SpecifiedLifetime_And_ServiceName()
-//    {
-//        var code = """
-//using DependencyInjection.SourceGenerator.Contracts.Attributes;
-//using DependencyInjection.SourceGenerator.Contracts.Enums;
+    namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
 
-//namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+    [Register(ServiceType = typeof(Service))]
+    public class Service : IService {}
+    public interface IService {}
 
-//[Register(Lifetime = Lifetime.Scoped, ServiceName = "Test")]
-//public class Service : IService {}
-//public interface IService {}
+    """;
 
-//""";
+        var expected = _header + """
+    public static class ServiceCollectionExtensions
+    {
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+        {
+            services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service>();
+            return services;
+        }
+    }
+    """;
 
-//        var expected = _header + """
-//public class CompositionRoot : ICompositionRoot
-//{
-//    public void Compose(IServiceRegistry serviceRegistry)
-//    {
-//        serviceRegistry.Register<DependencyInjection.SourceGenerator.LightInject.Demo.IService, DependencyInjection.SourceGenerator.LightInject.Demo.Service>("Test", new PerScopeLifetime());
-//    }
-//}
-//""";
+        await RunTestAsync(code, expected);
+        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
+    }
 
-//        await RunTestAsync(code, expected);
-//        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
-//    }
+    [Fact]
+    public async Task Register_NoInteface()
+    {
+        var code = """
+    using DependencyInjection.SourceGenerator.Contracts.Attributes;
+    using DependencyInjection.SourceGenerator.Contracts.Enums;
 
-//    [Fact]
-//    public async Task Register_Specified_ServiceType()
-//    {
-//        var code = """
-//using DependencyInjection.SourceGenerator.Contracts.Attributes;
-//using DependencyInjection.SourceGenerator.Contracts.Enums;
+    namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
 
-//namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+    [Register]
+    public class Service {}
 
-//[Register(ServiceType = typeof(Service))]
-//public class Service : IService {}
-//public interface IService {}
+    """;
 
-//""";
+        var expected = _header + """
+    public static class ServiceCollectionExtensions
+    {
+        public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+        {
+            services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service>();
+            return services;
+        }
+    }
+    """;
 
-//        var expected = _header + """
-//public class CompositionRoot : ICompositionRoot
-//{
-//    public void Compose(IServiceRegistry serviceRegistry)
-//    {
-//        serviceRegistry.Register<DependencyInjection.SourceGenerator.LightInject.Demo.Service>(new PerRequestLifeTime());
-//    }
-//}
-//""";
-
-//        await RunTestAsync(code, expected);
-//        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
-//    }
-
-//    [Fact]
-//    public async Task Register_NoInteface()
-//    {
-//        var code = """
-//using DependencyInjection.SourceGenerator.Contracts.Attributes;
-//using DependencyInjection.SourceGenerator.Contracts.Enums;
-
-//namespace DependencyInjection.SourceGenerator.LightInject.Demo;
-
-//[Register]
-//public class Service {}
-
-//""";
-
-//        var expected = _header + """
-//public class CompositionRoot : ICompositionRoot
-//{
-//    public void Compose(IServiceRegistry serviceRegistry)
-//    {
-//        serviceRegistry.Register<DependencyInjection.SourceGenerator.LightInject.Demo.Service>(new PerRequestLifeTime());
-//    }
-//}
-//""";
-
-//        await RunTestAsync(code, expected);
-//        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
-//    }
+        await RunTestAsync(code, expected);
+        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
+    }
 }
