@@ -3,14 +3,14 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Nullable>enable</Nullable>
-		<LangVersion>10</LangVersion>
+		<LangVersion>12</LangVersion>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<OutputType>library</OutputType>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<PackageId>DependencyInjection.SourceGenerator.Contracts</PackageId>
-		<Version>1.0.2</Version>
+		<Version>1.1.0</Version>
 		<Authors>Frederik Tegnander</Authors>
 		<Company>COWI</Company>
 		<PackageDescription>Contains attriubutes to use with DependencyInjection.SourceGenerator</PackageDescription>

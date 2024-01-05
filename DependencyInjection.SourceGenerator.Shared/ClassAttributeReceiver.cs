@@ -2,10 +2,13 @@
 using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
+using DependencyInjection.SourceGenerator.Contracts.Attributes;
 
 namespace DependencyInjection.SourceGenerator.Shared;
-public class ClassAttributeReceiver(params string[] expectedAttributes) : ISyntaxContextReceiver
+public class ClassAttributeReceiver() : ISyntaxContextReceiver
 {
+    private static readonly string[] _attributes = [nameof(RegisterAttribute), nameof(DecorateAttribute) ];
+
     public List<INamedTypeSymbol> Classes { get; } = [];
 
     public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
@@ -29,7 +32,11 @@ public class ClassAttributeReceiver(params string[] expectedAttributes) : ISynta
         {
             foreach (var attribute in attributeList.Attributes)
             {
-                if (expectedAttributes.Contains(attribute.Name.ToString()) || expectedAttributes.Contains(attribute.Name.ToString() + "Attribute"))
+                var name = attribute.Name.ToString();
+                if (attribute.Name is GenericNameSyntax genericNameSyntax)
+                    name = genericNameSyntax.Identifier.ToString();
+
+                if (_attributes.Contains(name) || _attributes.Contains(name + "Attribute"))
                     return true;
             }
         }

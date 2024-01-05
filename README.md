@@ -54,7 +54,7 @@ public class ServiceDecorator : IExampleService
 	}
 }
 
-[Register(ServiceType = typeof(IAnotherService)]
+[Register<IAnotherService>]
 public class MultipleInterfacesService : IExampleService, IAnotherService
 {
 	public string GetExample()

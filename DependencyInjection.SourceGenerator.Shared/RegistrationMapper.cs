@@ -2,71 +2,44 @@
 using DependencyInjection.SourceGenerator.Contracts.Enums;
 using Microsoft.CodeAnalysis;
 using System;
-using System.Linq;
 
 namespace DependencyInjection.SourceGenerator.Shared;
 internal static class RegistrationMapper
 {
     internal static Registration? CreateRegistration(INamedTypeSymbol type)
     {
-        var attribute = type.GetAttributes().FirstOrDefault(x => x.AttributeClass?.Name == nameof(RegisterAttribute) || x.AttributeClass?.Name == nameof(RegisterAttribute).Replace("Attribute", ""));
+        var attribute = TypeHelper.GetAttribute<RegisterAttribute>(type);
 
         if (attribute is null)
             return null;
 
-        var displayFormat = SymbolDisplayFormat.FullyQualifiedFormat;
+        var serviceType = TypeHelper.GetServiceType(type, attribute);
+        if (serviceType is null)
+            return null;
 
-        var @interface = type.Interfaces.FirstOrDefault();
-        var serviceTypeName = @interface?.ToDisplayString(displayFormat);
-        if (@interface is null)
+        var lifetimeValue = TypeHelper.GetAttributeValue(attribute, nameof(RegisterAttribute.Lifetime));
+        if (!Enum.TryParse<Lifetime>(lifetimeValue?.ToString(), out var lifetime))
+            lifetime = new RegisterAttribute().Lifetime;
+
+        var serviceNameArgument = TypeHelper.GetAttributeValue(attribute, nameof(RegisterAttribute.ServiceName));
+
+        // Get the value of the property
+        var serviceName = serviceNameArgument?.ToString();
+
+        var implementationTypeName = type.ToDisplayString(TypeHelper.DisplayFormat);
+
+        if (TypeHelper.IsSameType(type, serviceType.Type))
         {
-            if (type.BaseType is null || type.BaseType.Kind != SymbolKind.ErrorType)
-                serviceTypeName = type.ToDisplayString(displayFormat);
-            else
-                serviceTypeName = type.ContainingNamespace.ToDisplayString(displayFormat) + "." + type.BaseType.Name;
+            implementationTypeName = serviceType.Name;
+            serviceType = null;
         }
-        else if (@interface.Kind == SymbolKind.ErrorType && !string.IsNullOrEmpty(serviceTypeName))
-            serviceTypeName = type.ContainingNamespace.ToDisplayString(displayFormat) + "." + serviceTypeName;
-
-
-
-        var namedArguments = attribute.NamedArguments;
-        var implementationTypeName = type.ToDisplayString(displayFormat);
-
-        var serviceTypeArgument = namedArguments.FirstOrDefault(arg => arg.Key == nameof(RegisterAttribute.ServiceType));
-        if (serviceTypeArgument.Value.Value is INamedTypeSymbol serviceType)
-        {            
-            serviceTypeName = serviceType.ToDisplayString(displayFormat);
-            if (serviceType.IsGenericType 
-                && type.IsGenericType 
-                && serviceType.ConstructUnboundGenericType().ToDisplayString(displayFormat) == type.ConstructUnboundGenericType().ToDisplayString(displayFormat))
-                implementationTypeName = serviceTypeName;
-        }
-
-        if (serviceTypeName is null)
-            return null;
-
-        var lifetimeArgument = namedArguments.FirstOrDefault(arg => arg.Key == nameof(RegisterAttribute.Lifetime));
-
-        // Get the value of the property
-        var lifetimeText = lifetimeArgument.Value.Value?.ToString() ?? new RegisterAttribute().Lifetime.ToString();
-
-        if (lifetimeText is null)
-            return null;
-
-        Enum.TryParse<Lifetime>(lifetimeText, out var lifetime);
-
-        var serviceNameArgument = namedArguments.FirstOrDefault(arg => arg.Key == nameof(RegisterAttribute.ServiceName));
-
-        // Get the value of the property
-        var serviceName = serviceNameArgument.Value.Value?.ToString();
 
         return new Registration
         {
             ImplementationTypeName = implementationTypeName,
             Lifetime = lifetime,
             ServiceName = serviceName,
-            ServiceType = serviceTypeName
+            ServiceType = serviceType?.Name
         };
     }
 }

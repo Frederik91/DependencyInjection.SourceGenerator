@@ -66,7 +66,7 @@ public class DependencyInjectionRegistrationGeneratorTests
     }
 
     [Fact]
-    public async Task CreateServiceCollectionExtensions_RegisterService()
+    public async Task Register_DefaultValues()
     {
         var code = """
 using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
@@ -184,7 +184,37 @@ public static class ServiceCollectionExtensions
     }
 
     [Fact]
-    public async Task CreateServiceCollectionExtensions_DecorateService()
+    public async Task Register_Specified_ServiceType_UsingGeneric()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+[Register<IService2>]
+public class Service : IService1, IService2 {}
+public interface IService1 {}
+public interface IService2 {}
+
+""";
+
+        var expected = _header + """
+public static class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService2, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service>();
+        return services;
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
+    }
+
+    [Fact]
+    public async Task Decorate_DefaultValues()
     {
         var code = """
 using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
@@ -211,4 +241,66 @@ public static class ServiceCollectionExtensions
         await RunTestAsync(code, expected);
         Assert.True(true); // silence warnings, real test happens in the RunAsync() method
     }
+
+    [Fact]
+    public async Task Decorate_Specified_ServiceType()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+[Decorate(ServiceType = typeof(IService2))]
+public class Service : IService1, IService2 {}
+public interface IService1 {}
+public interface IService2 {}
+
+""";
+
+        var expected = _header + """
+public static class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        services.Decorate<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService2, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service>();
+        return services;
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
+    }
+
+    [Fact]
+    public async Task Decorate_Specified_ServiceType_UsingGeneric()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+[Decorate<IService2>]
+public class Service : IService1, IService2 {}
+public interface IService1 {}
+public interface IService2 {}
+
+""";
+
+        var expected = _header + """
+public static class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        services.Decorate<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService2, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service>();
+        return services;
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
+    }
+
+
 }

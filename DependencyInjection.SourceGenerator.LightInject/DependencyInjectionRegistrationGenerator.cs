@@ -14,7 +14,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 {
     public void Initialize(GeneratorInitializationContext context)
     {
-        context.RegisterForSyntaxNotifications(() => new ClassAttributeReceiver(nameof(RegisterAttribute), nameof(DecorateAttribute)));
+        context.RegisterForSyntaxNotifications(() => new ClassAttributeReceiver());
     }
 
     public void Execute(GeneratorExecutionContext context)
@@ -159,7 +159,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
                             SyntaxFactory.IdentifierName("serviceRegistry"))))));
     }
 
-    private static ExpressionStatementSyntax CreateServiceRegistration(string serviceType, string implementation, Lifetime lifetime, string? serviceName)
+    private static ExpressionStatementSyntax CreateServiceRegistration(string? serviceType, string implementation, Lifetime lifetime, string? serviceName)
     {
         var lifetimeName = lifetime switch
         {
@@ -192,7 +192,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(args));
 
         SyntaxNodeOrToken[] tokens;
-        if (serviceType == implementation)
+        if (serviceType is null)
         {
             tokens = [SyntaxFactory.IdentifierName(implementation)];
         }
