@@ -8,7 +8,7 @@
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<IncludeBuildOutput>false</IncludeBuildOutput>
-		<Version>1.0.1</Version>
+		<Version>1.0.2</Version>
 	</PropertyGroup>
 
 
@@ -29,8 +29,7 @@
 
 
 	<ItemGroup>
-	  <ProjectReference Include="..\DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj" />
-	  <ProjectReference Include="..\DependencyInjection.SourceGenerator.Shared\DependencyInjection.SourceGenerator.Shared.csproj" />
+		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj" />
 		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Shared\DependencyInjection.SourceGenerator.Shared.csproj">
 			<PrivateAssets>all</PrivateAssets>
 		</ProjectReference>
