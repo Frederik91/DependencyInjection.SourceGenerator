@@ -1,16 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<LangVersion>12</LangVersion>
+	<Import Project="..\common.targets" />
+	<PropertyGroup>		
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<IncludeBuildOutput>false</IncludeBuildOutput>
-		<Version>1.0.0</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<PackageTags>SourceGenerator;LightInject</PackageTags>
+		<PackageDescription>Generates dependency injection registration using source generation</PackageDescription>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<!-- Generates a package at build -->
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="LightInject" Version="6.6.4" />
@@ -24,13 +25,18 @@
 
 	<ItemGroup>
 		<!-- Package the generator in the analyzer directory of the nuget package -->
-		<None Include="$(OutputPath)\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="$(OutputPath)\DependencyInjection.SourceGenerator.Contracts.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="$(OutputPath)\DependencyInjection.SourceGenerator.Shared.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="readme.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 
 	<ItemGroup>
-	  <ProjectReference Include="..\DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj" />
-	  <ProjectReference Include="..\DependencyInjection.SourceGenerator.Shared\DependencyInjection.SourceGenerator.Shared.csproj" />
+		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj" />
+		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Shared\DependencyInjection.SourceGenerator.Shared.csproj">
+			<PrivateAssets>all</PrivateAssets>
+		</ProjectReference>
 	</ItemGroup>
 
 </Project>

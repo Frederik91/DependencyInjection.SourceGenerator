@@ -3,7 +3,13 @@ using System;
 
 namespace DependencyInjection.SourceGenerator.Contracts.Attributes;
 
+[AttributeUsage(AttributeTargets.Class)]
 public class DecorateAttribute : Attribute
 {
     public Type? ServiceType { get; set; }
+}
+
+[AttributeUsage(AttributeTargets.Class)]
+public class DecorateAttribute<TServiceType> : Attribute
+{
 }
