@@ -78,7 +78,7 @@ internal static class TypeHelper
             {
                 return new(type, type.ToDisplayString(DisplayFormat));
             }
-            return new(type, type.ContainingNamespace.ToDisplayString(DisplayFormat) + "." + type.BaseType.Name);
+            return new(type.BaseType, type.ContainingNamespace.ToDisplayString(DisplayFormat) + "." + type.BaseType.Name);
         }
 
         var serviceTypeName = interfaceType.ToDisplayString(DisplayFormat);

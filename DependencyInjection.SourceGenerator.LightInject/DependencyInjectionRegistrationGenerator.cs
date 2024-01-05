@@ -6,6 +6,7 @@ using System.Text;
 using DependencyInjection.SourceGenerator.Contracts.Attributes;
 using DependencyInjection.SourceGenerator.Contracts.Enums;
 using DependencyInjection.SourceGenerator.Shared;
+using System.Diagnostics;
 
 namespace DependencyInjection.SourceGenerator.LightInject;
 
