@@ -1,4 +1,4 @@
-# DependencyInjection.SourceGenerator
+# DependencyInjection.SourceGenerator.Microsoft
 Register services using attributes instead of registering in code.
 
 ## Usage
@@ -94,66 +94,33 @@ public static class ServiceCollectionExtensions
 }
 ```
 
-#### Usage
+You can also create a method that will be called by the AddMyProject method. This is useful if you want to register services in a different way.
 
 ```csharp
-var services = new ServiceCollection();
-services.AddMyProject();
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
 
-### LightInject
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
 
-```csharp
-[Register(ServiceName = "ServiceName", Lifetime = Lifetime.Singleton)]
-public class ExampleService : IExampleService
+public class Registrator
 {
-	public string GetExample()
-	{
-		return "Example";
-	}
-}
-
-public interface IExampleService
-{
-	string GetExample();
-}
-
-```
-
-Generates a class CompositionRoot
-
-```csharp
-public class CompositionRoot : ICompositionRoot
-{
-	public static void Compose(IServiceRegistry serviceRegistry)
-	{
-		serviceRegistry.Register<IExampleService, ExampleService>("ServiceName", new PerContainerLifetime());
-	}
+    [RegistrationExtension]
+    internal static void Register(global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+		// Register your additional services here
+    }
 }
 ```
 
-If you already have a class CompositionRoot defined, the generated class will be made partial. Remeber to make your CompositionRoot partial as well.
-It will also call a method RegisterServices on the existing CompositionRoot class (this must be defined).
+This will then produce the following code:
 
 ```csharp
-public partial class CompositionRoot : ICompositionRoot
+public static class ServiceCollectionExtensions
 {
-	public static void Compose(IServiceRegistry serviceRegistry)
-	{
-		RegisterServices(serviceRegistry);
-		serviceRegistry.Register<IExampleService, ExampleService>("ServiceName", new PerContainerLifetime());
-	}
-}
-```
-
-The final existing CompositionRoot class must look like this:
-
-```csharp
-public partial class CompositionRoot
-{
-	public void RegisterServices(IServiceRegistry serviceRegistry)
-	{
-		// Register services here
-	}
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        global::DependencyInjection.SourceGenerator.Microsoft.Demo.Registrator.Register(services);
+        return services;
+    }
 }
 ```
 
@@ -162,7 +129,3 @@ The lifetime is an enum with the following values:
 - Transient
 - Scoped
 - Singleton
-
-
-## Misc
-Current only works with LightInject.

@@ -12,7 +12,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Files", "Files", "{5387CF4F
 		common.targets = common.targets
 		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
 		LICENSE = LICENSE
-		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceGenerator.LightInject.Tests", "DependencyInjection.SourceGenerator.LightInject.Tests\DependencyInjection.SourceGenerator.LightInject.Tests.csproj", "{2C2D60A1-7E80-493D-8123-187769EEE855}"

@@ -7,14 +7,12 @@
 		<Nullable>enable</Nullable>
 		<WarningsAsErrors>Nullable</WarningsAsErrors>
 		<LangVersion>12</LangVersion>
-		<Version>1.2.1-alpha1</Version>
+		<Version>1.2.1-alpha2</Version>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<PackageReadmeFile>readme.md</PackageReadmeFile>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   	<ItemGroup>
-		<None Include="..\readme.md" Pack="true" PackagePath="\" />
 		<None Include="..\LICENSE" Pack="true" PackagePath="\" />
 	</ItemGroup>
 </Project>
