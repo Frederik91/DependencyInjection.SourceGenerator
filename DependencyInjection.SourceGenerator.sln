@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceG
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Files", "Files", "{5387CF4F-733F-4A71-A82B-D4733964A06A}"
 	ProjectSection(SolutionItems) = preProject
+		common.targets = common.targets
 		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
+		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
 EndProject

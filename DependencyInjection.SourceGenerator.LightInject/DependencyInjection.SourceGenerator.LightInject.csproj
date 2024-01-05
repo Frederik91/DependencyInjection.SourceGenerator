@@ -1,17 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<WarningsAsErrors>Nullable</WarningsAsErrors>
-		<LangVersion>12</LangVersion>
+	<Import Project="..\common.targets" />
+	<PropertyGroup>		
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<IncludeBuildOutput>false</IncludeBuildOutput>
-		<Version>1.1.0</Version>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<PackageTags>SourceGenerator;LightInject</PackageTags>
+		<PackageDescription>Generates dependency injection registration using source generation</PackageDescription>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<!-- Generates a package at build -->
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<!-- Do not include the generator as a lib dependency -->
+		<DevelopmentDependency>true</DevelopmentDependency>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="LightInject" Version="6.6.4" />
