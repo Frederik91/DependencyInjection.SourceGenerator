@@ -6,6 +6,7 @@ using System.Text;
 using DependencyInjection.SourceGenerator.Contracts.Attributes;
 using DependencyInjection.SourceGenerator.Contracts.Enums;
 using DependencyInjection.SourceGenerator.Shared;
+using System.Linq.Expressions;
 
 namespace DependencyInjection.SourceGenerator.Microsoft;
 
@@ -24,7 +25,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
         var classesToRegister = RegistrationCollector.GetTypes(context);
 
-        var source = GenerateExtensionMethod(extensionName, @namespace, classesToRegister);
+        var source = GenerateExtensionMethod(context, extensionName, @namespace, classesToRegister);
         var sourceText = source.ToFullString();
         context.AddSource("ServiceCollectionExtensions.g.cs", SourceText.From(sourceText, Encoding.UTF8));
     }
@@ -52,19 +53,34 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         throw new NotSupportedException("Unable to calculate namespace");
     }
 
-    public static CompilationUnitSyntax GenerateExtensionMethod(string extensionName, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister)
+    public static CompilationUnitSyntax GenerateExtensionMethod(GeneratorExecutionContext context, string extensionName, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister)
     {
         var bodyMembers = new List<ExpressionStatementSyntax>();
 
         foreach (var type in classesToRegister)
         {
-            var registration = RegistrationMapper.CreateRegistration(type);
+            var registration = RegistrationExtensionMapper.CreateRegistration(type);
             if (registration is not null)
                 bodyMembers.Add(CreateRegistrationSyntax(registration.ServiceType, registration.ImplementationTypeName, registration.Lifetime, registration.ServiceName));
 
             var decoration = DecorationMapper.CreateDecoration(type);
             if (decoration is not null)
                 bodyMembers.Add(CreateDecorationSyntax(decoration.DecoratedTypeName, decoration.DecoratorTypeName));
+
+            var registrationExtensions = RegistrationExtensionMapper.CreateRegistrationExtensions(type);
+
+            foreach (var registrationExtension in registrationExtensions)
+            {
+                if (!registrationExtension.Errors.Any())
+                {
+                    bodyMembers.Add(CreateRegistrationExtensionSyntax(registrationExtension.ClassFullName, registrationExtension.MethodName));
+                    continue;
+                }
+                foreach (var error in registrationExtension.Errors)
+                {
+                    context.ReportDiagnostic(error);
+                }
+            }
         }
 
         var modifiers = SyntaxFactory.TokenList([SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)]);
@@ -114,6 +130,23 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
             SyntaxFactory.IdentifierName("DependencyInjection")));
 
         return Trivia.CreateCompilationUnitSyntax(classDeclaration, @namespace, [dependencyInjectionUsingDirective]);
+    }
+
+    private static ExpressionStatementSyntax CreateRegistrationExtensionSyntax(string className, string methodName)
+    {
+        var arguments = SyntaxFactory.ArgumentList(
+                SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.IdentifierName("services"))));
+
+        var expressionExpression = SyntaxFactory.InvocationExpression(
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName(className),
+                SyntaxFactory.IdentifierName(methodName)))
+        .WithArgumentList(arguments);
+
+        return SyntaxFactory.ExpressionStatement(expressionExpression);
     }
 
     private static ExpressionStatementSyntax CreateDecorationSyntax(string decoratedTypeName, string decoratorTypeName)

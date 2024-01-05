@@ -8,7 +8,7 @@ internal static class RegistrationMapper
 {
     internal static Registration? CreateRegistration(INamedTypeSymbol type)
     {
-        var attribute = TypeHelper.GetAttribute<RegisterAttribute>(type);
+        var attribute = TypeHelper.GetClassAttribute<RegisterAttribute>(type);
 
         if (attribute is null)
             return null;

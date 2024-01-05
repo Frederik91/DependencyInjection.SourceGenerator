@@ -5,9 +5,10 @@ using System.Linq;
 using DependencyInjection.SourceGenerator.Contracts.Attributes;
 
 namespace DependencyInjection.SourceGenerator.Shared;
-public class ClassAttributeReceiver() : ISyntaxContextReceiver
+public class ClassAttributeReceiver : ISyntaxContextReceiver
 {
-    private static readonly string[] _attributes = [nameof(RegisterAttribute), nameof(DecorateAttribute) ];
+    private static readonly string[] _classAttributes = [nameof(RegisterAttribute), nameof(DecorateAttribute)];
+    private static readonly string[] _methodAttributes = [nameof(RegistrationExtensionAttribute)];
 
     public List<INamedTypeSymbol> Classes { get; } = [];
 
@@ -36,10 +37,30 @@ public class ClassAttributeReceiver() : ISyntaxContextReceiver
                 if (attribute.Name is GenericNameSyntax genericNameSyntax)
                     name = genericNameSyntax.Identifier.ToString();
 
-                if (_attributes.Contains(name) || _attributes.Contains(name + "Attribute"))
+                if (_classAttributes.Contains(name) || _classAttributes.Contains(name + "Attribute"))
                     return true;
             }
         }
+
+        foreach (var member in classDeclarationSyntax.Members)
+        {
+            if (member is not MethodDeclarationSyntax methodDeclarationSyntax)
+                continue;
+
+            foreach (var attributeList in methodDeclarationSyntax.AttributeLists)
+            {
+                foreach (var attribute in attributeList.Attributes)
+                {
+                    var name = attribute.Name.ToString();
+                    if (attribute.Name is GenericNameSyntax genericNameSyntax)
+                        name = genericNameSyntax.Identifier.ToString();
+
+                    if (_methodAttributes.Contains(name) || _methodAttributes.Contains(name + "Attribute"))
+                        return true;
+                }
+            }
+        }
+
         return false;
     }
 }

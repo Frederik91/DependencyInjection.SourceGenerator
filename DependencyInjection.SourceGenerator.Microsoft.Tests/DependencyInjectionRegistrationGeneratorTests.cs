@@ -302,5 +302,38 @@ public static class ServiceCollectionExtensions
         Assert.True(true); // silence warnings, real test happens in the RunAsync() method
     }
 
+    [Fact]
+    public async Task Register_FromRegistrator()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+public class Registrator
+{
+    [RegistrationExtension]
+    internal static void Register(global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+    }
+}
+
+""";
+
+        var expected = _header + """
+public static class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        global::DependencyInjection.SourceGenerator.Microsoft.Demo.Registrator.Register(services);
+        return services;
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
+    }
+
 
 }

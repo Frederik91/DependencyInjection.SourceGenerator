@@ -6,7 +6,7 @@ internal static class DecorationMapper
 {
     internal static Decoration? CreateDecoration(INamedTypeSymbol type)
     {
-        var attribute = TypeHelper.GetAttribute<DecorateAttribute>(type);
+        var attribute = TypeHelper.GetClassAttribute<DecorateAttribute>(type);
 
         if (attribute is null)
             return null;

@@ -1,6 +1,7 @@
 ﻿using DependencyInjection.SourceGenerator.Contracts.Attributes;
 using Microsoft.CodeAnalysis;
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace DependencyInjection.SourceGenerator.Shared;
@@ -9,9 +10,15 @@ internal static class TypeHelper
     internal static SymbolDisplayFormat DisplayFormat { get; } = SymbolDisplayFormat.FullyQualifiedFormat;
 
 
-    internal static AttributeData? GetAttribute<TAttribute>(INamedTypeSymbol type) where TAttribute : Attribute
+    internal static AttributeData? GetClassAttribute<TAttribute>(INamedTypeSymbol type) where TAttribute : Attribute
     {
-        foreach (var attribute in type.GetAttributes())
+        var attributes = type.GetAttributes();
+        return GetAttribute<TAttribute>(attributes);
+    }
+
+    internal static AttributeData? GetAttribute<TAttribute>(ImmutableArray<AttributeData> attributes) where TAttribute : Attribute
+    {
+        foreach (var attribute in attributes)
         {
             if (attribute.AttributeClass is null)
                 continue;
