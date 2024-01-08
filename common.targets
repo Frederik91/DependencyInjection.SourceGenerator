@@ -2,14 +2,13 @@
    <PropertyGroup>
    		<Authors>Frederik Tegnander</Authors>
 		<RepositoryUrl>https://github.com/Frederik91/DependencyInjection.SourceGenerator</RepositoryUrl>
-		<TargetFramework>netstandard2.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<WarningsAsErrors>Nullable</WarningsAsErrors>
 		<LangVersion>12</LangVersion>
-		<Version>1.2.1</Version>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+	   <Version>1.2.2-alpha1</Version>
   </PropertyGroup>
 
   	<ItemGroup>

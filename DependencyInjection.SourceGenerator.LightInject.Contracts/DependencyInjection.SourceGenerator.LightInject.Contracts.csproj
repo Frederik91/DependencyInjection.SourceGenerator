@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\common.targets" />
+	<PropertyGroup>
+		<TargetFrameworks>net48;netstandard2.0;net6.0;net7.0;net8.0</TargetFrameworks>
+		<PackageTags>SourceGeneration</PackageTags>
+		<PackageDescription>Contains types used to set up dependency injection registrations for LightInject</PackageDescription>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="LightInject" Version="6"/>
+	</ItemGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj" />
+	</ItemGroup>
+
+</Project>

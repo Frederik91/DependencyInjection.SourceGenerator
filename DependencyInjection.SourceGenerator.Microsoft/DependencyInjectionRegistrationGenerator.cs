@@ -3,10 +3,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
-using DependencyInjection.SourceGenerator.Contracts.Attributes;
 using DependencyInjection.SourceGenerator.Contracts.Enums;
 using DependencyInjection.SourceGenerator.Shared;
-using System.Linq.Expressions;
 
 namespace DependencyInjection.SourceGenerator.Microsoft;
 
@@ -21,13 +19,42 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
     public void Execute(GeneratorExecutionContext context)
     {
         var @namespace = GetDefaultNamespace(context);
-        var extensionName = "Add" + context.Compilation.Assembly.Name.Replace(".", "");
+        var safeAssemblyName = EscapeAssemblyNameToMethodName(context.Compilation.AssemblyName);
+        var extensionName = "Add" + safeAssemblyName;
 
         var classesToRegister = RegistrationCollector.GetTypes(context);
 
         var source = GenerateExtensionMethod(context, extensionName, @namespace, classesToRegister);
         var sourceText = source.ToFullString();
         context.AddSource("ServiceCollectionExtensions.g.cs", SourceText.From(sourceText, Encoding.UTF8));
+    }
+
+    public static string EscapeAssemblyNameToMethodName(string? assemblyName)
+    {
+        if (string.IsNullOrWhiteSpace(assemblyName))
+            return "Default";
+
+        var sb = new StringBuilder();
+        var ensureNextUpper = true;
+        foreach (var c in assemblyName!)
+        {
+            if (char.IsLetterOrDigit(c))
+            {
+                var letter = c;
+                if (ensureNextUpper)
+                {
+                    letter = char.ToUpperInvariant(c);
+                    ensureNextUpper = false;
+                }
+                sb.Append(letter);
+            }
+            else
+            {
+                ensureNextUpper = true;
+                continue;
+            }
+        }
+        return sb.ToString();
     }
 
     private static string GetDefaultNamespace(GeneratorExecutionContext context)

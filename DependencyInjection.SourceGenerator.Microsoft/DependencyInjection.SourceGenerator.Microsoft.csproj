@@ -3,6 +3,7 @@
 	<Import Project="..\common.targets" />
 
 	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
@@ -13,21 +14,19 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<!-- Generates a package at build -->
 		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<DevelopmentDependency>true</DevelopmentDependency>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Scrutor" Version="4.2.2" />
-		<PackageReference Include="System.CodeDom" Version="8.0.0" PrivateAssets="all" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<!-- Package the generator in the analyzer directory of the nuget package -->
 		<None Include="$(OutputPath)\DependencyInjection.SourceGenerator.Contracts.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="$(OutputPath)\DependencyInjection.SourceGenerator.Shared.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
@@ -35,10 +34,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj" />
-		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Shared\DependencyInjection.SourceGenerator.Shared.csproj">
-			<PrivateAssets>all</PrivateAssets>
-		</ProjectReference>
+		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Microsoft.Contracts\DependencyInjection.SourceGenerator.Microsoft.Contracts.csproj" IncludeAssets="none" PrivateAssets="none" ExcludeAssets="all"  />
+		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj" IncludeAssets="none" PrivateAssets="none" ExcludeAssets="all"  />
+		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Shared\DependencyInjection.SourceGenerator.Shared.csproj" IncludeAssets="none" PrivateAssets="none" ExcludeAssets="all" />
 	</ItemGroup>
 
 </Project>

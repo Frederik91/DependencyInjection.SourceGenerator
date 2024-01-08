@@ -4,8 +4,6 @@ Register services using attributes instead of registering in code.
 ## Usage
 Add the "Register" attribute to the class you want to register. The attribute takes a type and a lifetime. The type is the type you want to register and the lifetime is the lifetime of the service. The lifetime is optional and defaults to Transient.
 
-### Microsoft.Extensions.DependencyInjection
-
 ```csharp
 
 namespace RootNamespace.Services;
@@ -94,7 +92,28 @@ public static class ServiceCollectionExtensions
 }
 ```
 
-You can also create a method that will be called by the AddMyProject method. This is useful if you want to register services in a different way.
+This can then be used like this: 
+```csharp
+var services = new ServiceCollection();
+services.AddMyProject();
+```
+
+for AspNetCore web APIs:
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+	services.AddMyProject();
+}
+```
+
+and for minimal APIs:
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddMyProject();
+```
+
+You can also create a method that will be called by the AddMyProject method. This is useful if you want to register services from other libraries
 
 ```csharp
 using global::DependencyInjection.SourceGenerator.Contracts.Attributes;

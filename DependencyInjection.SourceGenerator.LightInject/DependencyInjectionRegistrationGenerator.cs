@@ -27,9 +27,9 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
             .OfType<ClassDeclarationSyntax>()
             .FirstOrDefault(x => x.Identifier.Text == "CompositionRoot");
 
-        if (compositionRoot is not null && !IsPartial(compositionRoot))
+        if (compositionRoot is not null && !DependencyInjectionRegistrationGenerator.IsPartial(compositionRoot))
         {
-            var descriptor = new DiagnosticDescriptor("CW.1", "CompositionRoot not patial", "CompositionRoot must be partial", "LightInject", DiagnosticSeverity.Error, true);
+            var descriptor = new DiagnosticDescriptor("DIL01", "CompositionRoot not patial", "CompositionRoot must be partial", "LightInject", DiagnosticSeverity.Error, true);
             context.ReportDiagnostic(Diagnostic.Create(descriptor, compositionRoot.GetLocation()));
             return;
         }
@@ -221,7 +221,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
              .WithArgumentList(argumentList));
     }
 
-    private bool IsPartial(ClassDeclarationSyntax compositionRoot)
+    private static bool IsPartial(ClassDeclarationSyntax compositionRoot)
     {
         return compositionRoot.Modifiers.Any(x => x.Text == "partial");
     }

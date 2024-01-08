@@ -27,7 +27,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj" />
+		<ProjectReference Include="..\DependencyInjection.SourceGenerator.LightInject.Contracts\DependencyInjection.SourceGenerator.LightInject.Contracts.csproj" />
 		<ProjectReference Include="..\DependencyInjection.SourceGenerator.LightInject\DependencyInjection.SourceGenerator.LightInject.csproj" />
 	</ItemGroup>
 

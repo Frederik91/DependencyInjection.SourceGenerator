@@ -4,9 +4,8 @@ using Microsoft.CodeAnalysis.Text;
 using System.Text;
 using VerifyCS = DependencyInjection.SourceGenerator.Microsoft.Tests.CSharpSourceGeneratorVerifier<DependencyInjection.SourceGenerator.Microsoft.DependencyInjectionRegistrationGenerator>;
 using Microsoft.CodeAnalysis.Testing;
-using DependencyInjection.SourceGenerator.Microsoft;
-using Microsoft.Extensions.DependencyInjection;
 using NuGet.Frameworks;
+using FluentAssertions;
 
 namespace DependencyInjection.SourceGenerator.Microsoft.Tests;
 
@@ -59,10 +58,21 @@ public class DependencyInjectionRegistrationGeneratorTests
         };
 
         tester.ReferenceAssemblies.AddAssemblies(_references);
-        tester.TestState.AdditionalReferences.Add(typeof(Contracts.Attributes.RegisterAttribute).Assembly);
+        tester.TestState.AdditionalReferences.Add(typeof(global::DependencyInjection.SourceGenerator.Contracts.Attributes.RegisterAttribute).Assembly);
+        tester.TestState.AdditionalReferences.Add(typeof(global::DependencyInjection.SourceGenerator.Contracts.Attributes.RegistrationExtensionAttribute).Assembly);
         tester.TestState.AdditionalReferences.Add(typeof(global::Microsoft.Extensions.DependencyInjection.IServiceCollection).Assembly);
         tester.TestState.AdditionalReferences.Add(typeof(global::Scrutor.DecoratedType).Assembly);
         await tester.RunAsync();
+    }
+
+    [Theory]
+    [InlineData("Test", "Test")]
+    [InlineData("Test.abc", "TestAbc")]
+    [InlineData("Test-abc", "TestAbc")]
+    [InlineData("Test_abc", "TestAbc")]
+    public void GetSafeMethodName(string assemblyName, string expectedMethodName)
+    {
+        DependencyInjectionRegistrationGenerator.EscapeAssemblyNameToMethodName(assemblyName).Should().Be(expectedMethodName);
     }
 
     [Fact]
@@ -91,7 +101,6 @@ public static class ServiceCollectionExtensions
 """;
 
         await RunTestAsync(code, expected);
-        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
     }
 
     [Fact]
@@ -121,7 +130,6 @@ public static class ServiceCollectionExtensions
     """;
 
         await RunTestAsync(code, expected);
-        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
     }
 
     [Fact]
@@ -151,7 +159,6 @@ public static class ServiceCollectionExtensions
     """;
 
         await RunTestAsync(code, expected);
-        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
     }
 
     [Fact]
@@ -180,7 +187,6 @@ public static class ServiceCollectionExtensions
     """;
 
         await RunTestAsync(code, expected);
-        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
     }
 
     [Fact]
@@ -210,7 +216,6 @@ public static class ServiceCollectionExtensions
 """;
 
         await RunTestAsync(code, expected);
-        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
     }
 
     [Fact]
@@ -239,7 +244,6 @@ public static class ServiceCollectionExtensions
 """;
 
         await RunTestAsync(code, expected);
-        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
     }
 
     [Fact]
@@ -269,7 +273,6 @@ public static class ServiceCollectionExtensions
 """;
 
         await RunTestAsync(code, expected);
-        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
     }
 
     [Fact]
@@ -299,7 +302,6 @@ public static class ServiceCollectionExtensions
 """;
 
         await RunTestAsync(code, expected);
-        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
     }
 
     [Fact]
@@ -332,7 +334,6 @@ public static class ServiceCollectionExtensions
 """;
 
         await RunTestAsync(code, expected);
-        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
     }
 
 
