@@ -441,8 +441,9 @@ using global::DependencyInjection.SourceGenerator.Microsoft.Demo;
 
 namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
 
+public interface IDummy { }
 public interface IService<TType> { }
-public class Service1 : IService<string> {}
+public class Service1 : IDummy, IService<string> {}
 public class Service2 : IService<int> {}
 
 """;
