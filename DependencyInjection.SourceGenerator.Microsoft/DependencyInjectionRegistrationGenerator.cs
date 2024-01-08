@@ -23,8 +23,9 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         var extensionName = "Add" + safeAssemblyName;
 
         var classesToRegister = RegistrationCollector.GetTypes(context);
+        var registerAllTypes = RegistrationCollector.GetRegisterAllTypes(context);
 
-        var source = GenerateExtensionMethod(context, extensionName, @namespace, classesToRegister);
+        var source = GenerateExtensionMethod(context, extensionName, @namespace, classesToRegister, registerAllTypes);
         var sourceText = source.ToFullString();
         context.AddSource("ServiceCollectionExtensions.g.cs", SourceText.From(sourceText, Encoding.UTF8));
     }
@@ -80,7 +81,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         throw new NotSupportedException("Unable to calculate namespace");
     }
 
-    public static CompilationUnitSyntax GenerateExtensionMethod(GeneratorExecutionContext context, string extensionName, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister)
+    private static CompilationUnitSyntax GenerateExtensionMethod(GeneratorExecutionContext context, string extensionName, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister, IEnumerable<Registration> additionalRegistrations)
     {
         var bodyMembers = new List<ExpressionStatementSyntax>();
 
@@ -108,6 +109,11 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
                     context.ReportDiagnostic(error);
                 }
             }
+        }
+
+        foreach (var registration in additionalRegistrations)
+        {
+            bodyMembers.Add(CreateRegistrationSyntax(registration.ServiceType, registration.ImplementationTypeName, registration.Lifetime, registration.ServiceName));
         }
 
         var methodModifiers = SyntaxFactory.TokenList([SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)]);

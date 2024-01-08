@@ -228,4 +228,94 @@ public class CompositionRoot : global::LightInject.ICompositionRoot
         await RunTestAsync(code, expected);
         Assert.True(true); // silence warnings, real test happens in the RunAsync() method
     }
+
+    [Fact]
+    public async Task RegisterAll_ByInterface()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+[assembly: RegisterAll<global::DependencyInjection.SourceGenerator.LightInject.Demo.IService>]
+
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+
+public class Service1 : IService {}
+public class Service2 : IService {}
+public interface IService {}
+
+""";
+
+        var expected = _header + """
+public class CompositionRoot : global::LightInject.ICompositionRoot
+{
+    public void Compose(global::LightInject.IServiceRegistry serviceRegistry)
+    {
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.IService, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service2>(new global::LightInject.PerRequestLifeTime());
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.IService, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service1>(new global::LightInject.PerRequestLifeTime());
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
+
+    [Fact]
+    public async Task RegisterAll_ByBaseType_WithServiceName()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+[assembly: RegisterAll<global::DependencyInjection.SourceGenerator.LightInject.Demo.MyBase>(IncludeServiceName = true)]
+
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+
+public class Service1 : MyBase {}
+public class Service2 : MyBase {}
+public abstract class MyBase {}
+
+""";
+
+        var expected = _header + """
+public class CompositionRoot : global::LightInject.ICompositionRoot
+{
+    public void Compose(global::LightInject.IServiceRegistry serviceRegistry)
+    {
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.MyBase, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service2>("Service2", new global::LightInject.PerRequestLifeTime());
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.MyBase, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service1>("Service1", new global::LightInject.PerRequestLifeTime());
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
+
+    [Fact]
+    public async Task RegisterAll_ByBaseType_WithoutServiceName()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+[assembly: RegisterAll<global::DependencyInjection.SourceGenerator.LightInject.Demo.MyBase>]
+
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+
+public class Service1 : MyBase {}
+public class Service2 : MyBase {}
+public abstract class MyBase {}
+
+""";
+
+        var expected = _header + """
+public class CompositionRoot : global::LightInject.ICompositionRoot
+{
+    public void Compose(global::LightInject.IServiceRegistry serviceRegistry)
+    {
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.MyBase, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service2>(new global::LightInject.PerRequestLifeTime());
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.MyBase, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service1>(new global::LightInject.PerRequestLifeTime());
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
 }

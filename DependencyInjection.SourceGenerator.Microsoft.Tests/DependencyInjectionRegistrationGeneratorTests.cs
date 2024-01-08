@@ -337,4 +337,97 @@ public static partial class ServiceCollectionExtensions
     }
 
 
+    [Fact]
+    public async Task RegisterAll_ByInterface()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+[assembly: RegisterAll<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService>]
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+public class Service1 : IService {}
+public class Service2 : IService {}
+public interface IService {}
+
+""";
+
+        var expected = _header + """
+public static partial class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service2>();
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service1>();
+        return services;
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
+
+    [Fact]
+    public async Task RegisterAll_ByBaseType_WithServiceName()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+[assembly: RegisterAll<global::DependencyInjection.SourceGenerator.Microsoft.Demo.MyBase>(IncludeServiceName = true)]
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+public class Service1 : MyBase {}
+public class Service2 : MyBase {}
+public abstract class MyBase {}
+
+""";
+
+        var expected = _header + """
+public static partial class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        services.AddKeyedTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.MyBase, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service2>("Service2");
+        services.AddKeyedTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.MyBase, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service1>("Service1");
+        return services;
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
+
+    [Fact]
+    public async Task RegisterAll_ByBaseType_WithoutServiceName()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+[assembly: RegisterAll<global::DependencyInjection.SourceGenerator.Microsoft.Demo.MyBase>]
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+public class Service1 : MyBase {}
+public class Service2 : MyBase {}
+public abstract class MyBase {}
+
+""";
+
+        var expected = _header + """
+public static partial class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.MyBase, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service2>();
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.MyBase, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service1>();
+        return services;
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
+
 }

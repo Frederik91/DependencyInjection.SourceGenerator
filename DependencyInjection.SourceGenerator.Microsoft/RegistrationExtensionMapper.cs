@@ -8,20 +8,20 @@ internal static class RegistrationExtensionMapper
 {
     internal static Registration? CreateRegistration(INamedTypeSymbol type)
     {
-        var attribute = TypeHelper.GetClassAttribute<RegisterAttribute>(type);
+        var attributes = TypeHelper.GetClassAttributes<RegisterAttribute>(type).FirstOrDefault();
 
-        if (attribute is null)
+        if (attributes is null)
             return null;
 
-        var serviceType = TypeHelper.GetServiceType(type, attribute);
+        var serviceType = TypeHelper.GetServiceType(type, attributes);
         if (serviceType is null)
             return null;
 
-        var lifetimeValue = TypeHelper.GetAttributeValue(attribute, nameof(RegisterAttribute.Lifetime));
+        var lifetimeValue = TypeHelper.GetAttributeValue(attributes, nameof(RegisterAttribute.Lifetime));
         if (!Enum.TryParse<Lifetime>(lifetimeValue?.ToString(), out var lifetime))
             lifetime = new RegisterAttribute().Lifetime;
 
-        var serviceNameArgument = TypeHelper.GetAttributeValue(attribute, nameof(RegisterAttribute.ServiceName));
+        var serviceNameArgument = TypeHelper.GetAttributeValue(attributes, nameof(RegisterAttribute.ServiceName));
 
         // Get the value of the property
         var serviceName = serviceNameArgument?.ToString();
@@ -51,8 +51,8 @@ internal static class RegistrationExtensionMapper
             if (member is not IMethodSymbol method)
                 continue;
 
-            var attribute = TypeHelper.GetAttribute<RegistrationExtensionAttribute>(member.GetAttributes());
-            if (attribute is null)
+            var attribute = TypeHelper.GetAttributes<RegistrationExtensionAttribute>(member.GetAttributes());
+            if (!attribute.Any())
                 continue;
 
             List<Diagnostic> errors = [];

@@ -38,8 +38,9 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         var @namespace = GetDefaultNamespace(context, compositionRoot);
 
         var classesToRegister = RegistrationCollector.GetTypes(context);
+        var registerAllTypes = RegistrationCollector.GetRegisterAllTypes(context);
 
-        var source = GenerateCompositionRoot(compositionRoot is not null, @namespace, classesToRegister);
+        var source = GenerateCompositionRoot(compositionRoot is not null, @namespace, classesToRegister, registerAllTypes);
         var sourceText = source.ToFullString();
         context.AddSource("CompositionRoot.g.cs", SourceText.From(sourceText, Encoding.UTF8));
     }
@@ -73,7 +74,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         throw new NotSupportedException("Unable to calculate namespace");
     }
 
-    public static CompilationUnitSyntax GenerateCompositionRoot(bool userdefinedCompositionRoot, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister)
+    private static CompilationUnitSyntax GenerateCompositionRoot(bool userdefinedCompositionRoot, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister, List<Registration> additionalRegistrations)
     {
         var modifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
 
@@ -96,6 +97,11 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
             if (decoration is not null)
                 bodyMembers.Add(CreateServiceDecoration(decoration.DecoratedTypeName, decoration.DecoratorTypeName));
 
+        }
+
+        foreach (var registration in additionalRegistrations)
+        {
+            bodyMembers.Add(CreateServiceRegistration(registration.ServiceType, registration.ImplementationTypeName, registration.Lifetime, registration.ServiceName));
         }
 
         var body = SyntaxFactory.Block(bodyMembers.ToArray());

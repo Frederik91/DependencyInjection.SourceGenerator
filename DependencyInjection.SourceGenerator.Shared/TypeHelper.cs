@@ -1,6 +1,7 @@
 ﻿using DependencyInjection.SourceGenerator.Contracts.Attributes;
 using Microsoft.CodeAnalysis;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -10,14 +11,15 @@ internal static class TypeHelper
     internal static SymbolDisplayFormat DisplayFormat { get; } = SymbolDisplayFormat.FullyQualifiedFormat;
 
 
-    internal static AttributeData? GetClassAttribute<TAttribute>(INamedTypeSymbol type) where TAttribute : Attribute
+    internal static List<AttributeData> GetClassAttributes<TAttribute>(INamedTypeSymbol type) where TAttribute : Attribute
     {
         var attributes = type.GetAttributes();
-        return GetAttribute<TAttribute>(attributes);
+        return GetAttributes<TAttribute>(attributes);
     }
 
-    internal static AttributeData? GetAttribute<TAttribute>(ImmutableArray<AttributeData> attributes) where TAttribute : Attribute
+    internal static List<AttributeData> GetAttributes<TAttribute>(ImmutableArray<AttributeData> attributes) where TAttribute : Attribute
     {
+        var result = new List<AttributeData>();
         foreach (var attribute in attributes)
         {
             if (attribute.AttributeClass is null)
@@ -28,9 +30,9 @@ internal static class TypeHelper
                 name += "Attribute";
 
             if (name == typeof(TAttribute).Name)
-                return attribute;
+                result.Add(attribute);
         }
-        return null;
+        return result;
     }
 
     internal static object? GetAttributeValue(AttributeData attribute, string key)

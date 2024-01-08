@@ -147,6 +147,54 @@ public static class ServiceCollectionExtensions
 }
 ```
 
+### Register all services in the project
+You can also register all services in an project by adding the RegisterAll attribute to the assembly. This will register all implementations of the specified type.
+
+```csharp
+
+using DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+[assembly: RegisterAll<IExampleService>]
+
+namespace RootNamespace.Services;
+
+public interface IExampleService
+{
+	string GetExample();
+}
+
+public class ExampleService1 : IExampleService
+{
+	public string GetExample()
+	{
+		return "Example 1";
+	}
+}
+
+public class ExampleService2 : IExampleService
+{
+	public string GetExample()
+	{
+		return "Example 2";
+	}
+}
+
+```
+
+this will generate the following code:
+
+```csharp
+public static class ServiceCollectionExtensions
+{
+	public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+	{
+		services.AddTransient<global::RootNamespace.Services.IExampleService, global::RootNamespace.Services.ExampleService1>();
+		services.AddTransient<global::RootNamespace.Services.IExampleService, global::RootNamespace.Services.ExampleService2>();
+		return services;
+	}
+}
+```
+
 ## Lifetime
 The lifetime is an enum with the following values:
 - Transient
