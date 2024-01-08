@@ -56,6 +56,9 @@ internal static class RegistrationCollector
             var types = compilation.GetSymbolsWithName(typeName, SymbolFilter.Type).OfType<INamedTypeSymbol>();
             foreach (var type in types)
             {
+                if (type.IsAbstract)
+                    continue;
+
                 var registration = GetRegistration(type, serviceType, lifetime, includeServiceNameValue);
                 if (registration is not null)
                     result.Add(registration);                
@@ -122,7 +125,7 @@ internal static class RegistrationCollector
 
         if (typeToCheck.IsUnboundGenericType)
         {
-            if (baseType.ConstructUnboundGenericType().ToDisplayString(TypeHelper.DisplayFormat) == typeToCheck.ToDisplayString(TypeHelper.DisplayFormat))
+            if (baseType.IsGenericType && baseType.ConstructUnboundGenericType().ToDisplayString(TypeHelper.DisplayFormat) == typeToCheck.ToDisplayString(TypeHelper.DisplayFormat))
                 return baseType;
 
             return GetBaseTypeImplementation(baseType, typeToCheck);

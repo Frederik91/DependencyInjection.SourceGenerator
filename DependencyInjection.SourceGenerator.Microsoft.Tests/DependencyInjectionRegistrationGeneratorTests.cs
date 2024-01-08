@@ -431,7 +431,7 @@ public static partial class ServiceCollectionExtensions
     }
 
     [Fact]
-    public async Task RegisterAll_GenericType()
+    public async Task RegisterAll_GenericInterfaceType()
     {
         var code = """
 using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
@@ -463,4 +463,35 @@ public static partial class ServiceCollectionExtensions
         await RunTestAsync(code, expected);
     }
 
+
+    [Fact]
+    public async Task RegisterAll_GenericBaseClassType()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+using global::DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+[assembly: RegisterAll(typeof(BaseType<>))]
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+public abstract class MyType : BaseType<string> { }
+public abstract class BaseType<TType> { }
+public class Service : MyType {}
+
+""";
+
+        var expected = _header + """
+public static partial class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.BaseType<string>, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service>();
+        return services;
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
 }
