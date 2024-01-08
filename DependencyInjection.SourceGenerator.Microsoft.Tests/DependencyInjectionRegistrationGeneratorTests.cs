@@ -430,4 +430,36 @@ public static partial class ServiceCollectionExtensions
         await RunTestAsync(code, expected);
     }
 
+    [Fact]
+    public async Task RegisterAll_GenericType()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+using global::DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+[assembly: RegisterAll(typeof(IService<>))]
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+public interface IService<TType> { }
+public class Service1 : IService<string> {}
+public class Service2 : IService<int> {}
+
+""";
+
+        var expected = _header + """
+public static partial class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService<int>, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service2>();
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService<string>, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service1>();
+        return services;
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
+
 }

@@ -51,6 +51,9 @@ internal static class TypeHelper
         if (attribute.AttributeClass?.ConstructedFrom is INamedTypeSymbol attributeClass && attributeClass.IsGenericType && attribute.AttributeClass?.TypeArguments.Length > 0)
             return attribute.AttributeClass?.TypeArguments[0] as INamedTypeSymbol;
 
+        if (attribute.ConstructorArguments.Length > 0 && attribute.ConstructorArguments[0].Value is INamedTypeSymbol argumentServiceType)
+            return argumentServiceType;            
+
         return default;
     }
 

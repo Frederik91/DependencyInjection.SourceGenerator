@@ -1,4 +1,5 @@
-﻿using DependencyInjection.SourceGenerator.Contracts.Enums;
+﻿using DependencyInjection.SourceGenerator.Contracts.Attributes;
+using DependencyInjection.SourceGenerator.Contracts.Enums;
 
 namespace DependencyInjection.SourceGenerator.Contracts.Attributes;
 
@@ -20,8 +21,8 @@ public class RegisterAllAttribute(Type serviceType) : Attribute, IRegisterAllAtt
     {
         Lifetime = lifetime;
     }
-
 }
+
 
 [AttributeUsage(AttributeTargets.Assembly)]
 public class RegisterAllAttribute<TServiceType> : Attribute, IRegisterAllAttribute

@@ -38,26 +38,15 @@ internal static class RegistrationCollector
             if (!bool.TryParse(includeServiceName?.ToString(), out var includeServiceNameValue))
                 includeServiceNameValue = false;
 
-            var implementedTypes = GetImplementedTypes(serviceType, context);
-            foreach (var implementedType in implementedTypes)
-            {
-                var registration = new Registration
-                {
-                    ImplementationTypeName = implementedType.ToDisplayString(TypeHelper.DisplayFormat),
-                    Lifetime = lifetimeValue,
-                    ServiceName = includeServiceNameValue ? implementedType.Name : null,
-                    ServiceType = serviceType.ToDisplayString(TypeHelper.DisplayFormat)
-                };
-                result.Add(registration);
-            }
+            return GetImplementedTypes(serviceType, context, lifetimeValue, includeServiceNameValue);
         }
 
         return result;
     }
 
-    private static List<INamedTypeSymbol> GetImplementedTypes(INamedTypeSymbol? serviceType, GeneratorExecutionContext context)
+    private static List<Registration> GetImplementedTypes(INamedTypeSymbol? serviceType, GeneratorExecutionContext context, Lifetime lifetime, bool includeServiceNameValue)
     {
-        var result = new List<INamedTypeSymbol>();
+        var result = new List<Registration>();
         if (serviceType is null)
             return result;
 
@@ -67,26 +56,80 @@ internal static class RegistrationCollector
             var types = compilation.GetSymbolsWithName(typeName, SymbolFilter.Type).OfType<INamedTypeSymbol>();
             foreach (var type in types)
             {
-                if (type.AllInterfaces.Any(i => i.ToDisplayString(TypeHelper.DisplayFormat) == serviceType.ToDisplayString(TypeHelper.DisplayFormat)))
-                    result.Add(type);
-                else if (BaseTypeIsType(type, serviceType))
-                    result.Add(type);
+                var registration = GetRegistration(type, serviceType, lifetime, includeServiceNameValue);
+                if (registration is not null)
+                    result.Add(registration);                
             }
-
         }
 
         return result;
-
     }
 
-    private static bool BaseTypeIsType(INamedTypeSymbol type, INamedTypeSymbol typeToCheck)
+    private static Registration? GetRegistration(INamedTypeSymbol type, INamedTypeSymbol serviceType, Lifetime lifetime, bool includeServiceNameValue)
+    {
+        if (serviceType.TypeKind == TypeKind.Interface && GetRegistrationByInterface(type, serviceType, lifetime, includeServiceNameValue) is { } registration)
+            return registration;
+
+        if (serviceType.TypeKind == TypeKind.Class && GetBaseTypeImplementation(type, serviceType) is { } baseTypeImplementation)
+        {
+            return new Registration
+            {
+                ImplementationTypeName = type.ToDisplayString(TypeHelper.DisplayFormat),
+                Lifetime = lifetime,
+                ServiceName = includeServiceNameValue ? type.Name : null,
+                ServiceType = baseTypeImplementation.ToDisplayString(TypeHelper.DisplayFormat)
+            };
+        }
+        return null;
+    }
+
+    private static Registration? GetRegistrationByInterface(INamedTypeSymbol type, INamedTypeSymbol serviceType, Lifetime lifetime, bool includeServiceNameValue)
+    {
+        foreach (var implInterface in type.AllInterfaces)
+        {
+            if (serviceType.IsUnboundGenericType)
+            {
+                if (implInterface.ConstructUnboundGenericType().ToDisplayString(TypeHelper.DisplayFormat) == serviceType.ToDisplayString(TypeHelper.DisplayFormat))
+                {
+                    return new Registration
+                    {
+                        ImplementationTypeName = type.ToDisplayString(TypeHelper.DisplayFormat),
+                        Lifetime = lifetime,
+                        ServiceName = includeServiceNameValue ? type.Name : null,
+                        ServiceType = implInterface.ToDisplayString(TypeHelper.DisplayFormat)
+                    };
+                }
+            }
+            else if (implInterface.ToDisplayString(TypeHelper.DisplayFormat) == serviceType.ToDisplayString(TypeHelper.DisplayFormat))
+            {
+                return new Registration
+                {
+                    ImplementationTypeName = type.ToDisplayString(TypeHelper.DisplayFormat),
+                    Lifetime = lifetime,
+                    ServiceName = includeServiceNameValue ? type.Name : null,
+                    ServiceType = serviceType.ToDisplayString(TypeHelper.DisplayFormat)
+                };
+            }
+        }
+        return null;
+    }
+
+    private static INamedTypeSymbol? GetBaseTypeImplementation(INamedTypeSymbol type, INamedTypeSymbol typeToCheck)
     {
         if (type.BaseType is not { } baseType)
-            return false;
+            return null; ;
+
+        if (typeToCheck.IsUnboundGenericType)
+        {
+            if (baseType.ConstructUnboundGenericType().ToDisplayString(TypeHelper.DisplayFormat) == typeToCheck.ToDisplayString(TypeHelper.DisplayFormat))
+                return baseType;
+
+            return GetBaseTypeImplementation(baseType, typeToCheck);
+        }
 
         if (baseType.ToDisplayString(TypeHelper.DisplayFormat) == typeToCheck.ToDisplayString(TypeHelper.DisplayFormat))
-            return true;
+            return baseType;
 
-        return BaseTypeIsType(baseType, typeToCheck);
+        return GetBaseTypeImplementation(baseType, typeToCheck);
     }
 }
