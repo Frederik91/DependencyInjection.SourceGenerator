@@ -18,7 +18,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
     public void Execute(GeneratorExecutionContext context)
     {
-        var @namespace = GetDefaultNamespace(context);
+        var @namespace = "Microsoft.Extensions.DependencyInjection";
         var safeAssemblyName = EscapeAssemblyNameToMethodName(context.Compilation.AssemblyName);
         var extensionName = "Add" + safeAssemblyName;
 
@@ -110,7 +110,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
             }
         }
 
-        var modifiers = SyntaxFactory.TokenList([SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)]);
+        var methodModifiers = SyntaxFactory.TokenList([SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)]);
 
         var serviceCollectionSyntax = SyntaxFactory.QualifiedName(
                             SyntaxFactory.QualifiedName(
@@ -124,7 +124,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
                             SyntaxFactory.IdentifierName("IServiceCollection"));
 
         var methodDeclaration = SyntaxFactory.MethodDeclaration(serviceCollectionSyntax, SyntaxFactory.Identifier(extensionName))
-                            .WithModifiers(SyntaxFactory.TokenList(modifiers))
+                            .WithModifiers(SyntaxFactory.TokenList(methodModifiers))
                             .WithParameterList(
                                 SyntaxFactory.ParameterList(
                                     SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
@@ -142,8 +142,9 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
         methodDeclaration = methodDeclaration.WithBody(body);
 
+        var classModifiers = SyntaxFactory.TokenList([SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PartialKeyword)]);
         var classDeclaration = SyntaxFactory.ClassDeclaration("ServiceCollectionExtensions")
-                    .WithModifiers(modifiers)
+                    .WithModifiers(classModifiers)
                     .WithMembers(SyntaxFactory.SingletonList<MemberDeclarationSyntax>(methodDeclaration));
 
         var dependencyInjectionUsingDirective = SyntaxFactory.UsingDirective(
