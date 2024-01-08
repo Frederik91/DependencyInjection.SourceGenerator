@@ -12,7 +12,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Files", "Files", "{5387CF4F
 		common.targets = common.targets
 		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
 		LICENSE = LICENSE
-		DependencyInjection.SourceGenerator.Microsoft\README.md = DependencyInjection.SourceGenerator.Microsoft\README.md
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -29,16 +28,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DependencyInjection.SourceGenerator.LightInject.Contracts", "DependencyInjection.SourceGenerator.LightInject.Contracts\DependencyInjection.SourceGenerator.LightInject.Contracts.csproj", "{87DFF61F-C561-4587-89B8-D360B44A257F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DependencyInjection.SourceGenerator.Microsoft.Contracts", "DependencyInjection.SourceGenerator.Microsoft.Contracts\DependencyInjection.SourceGenerator.Microsoft.Contracts.csproj", "{15C145AF-074C-4607-B09D-1B1FB3AEE9D2}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft", "Microsoft", "{3E528799-1D38-4039-846A-D33A51FA087E}"
-	ProjectSection(SolutionItems) = preProject
-		DependencyInjection.SourceGenerator.Microsoft\README.md = DependencyInjection.SourceGenerator.Microsoft\README.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LightInject", "LightInject", "{4DFD71E7-F394-4529-9CAF-BFF2A0CC0F90}"
-	ProjectSection(SolutionItems) = preProject
-		DependencyInjection.SourceGenerator.LightInject\README.md = DependencyInjection.SourceGenerator.LightInject\README.md
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,8 +74,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{2C2D60A1-7E80-493D-8123-187769EEE855} = {307324C8-0321-4E96-8C4B-5566A672364A}
 		{E42AD1F2-3243-4E90-9C01-07E38577925E} = {307324C8-0321-4E96-8C4B-5566A672364A}
-		{3E528799-1D38-4039-846A-D33A51FA087E} = {5387CF4F-733F-4A71-A82B-D4733964A06A}
-		{4DFD71E7-F394-4529-9CAF-BFF2A0CC0F90} = {5387CF4F-733F-4A71-A82B-D4733964A06A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6DC31EA4-A125-4CEA-9C7F-C266B28473ED}
