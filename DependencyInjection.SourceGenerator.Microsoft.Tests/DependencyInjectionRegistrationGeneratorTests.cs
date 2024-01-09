@@ -59,7 +59,7 @@ public class DependencyInjectionRegistrationGeneratorTests
 
         tester.ReferenceAssemblies.AddAssemblies(_references);
         tester.TestState.AdditionalReferences.Add(typeof(global::DependencyInjection.SourceGenerator.Contracts.Attributes.RegisterAttribute).Assembly);
-        tester.TestState.AdditionalReferences.Add(typeof(global::DependencyInjection.SourceGenerator.Contracts.Attributes.RegistrationExtensionAttribute).Assembly);
+        tester.TestState.AdditionalReferences.Add(typeof(global::DependencyInjection.SourceGenerator.Microsoft.Contracts.Attributes.RegistrationExtensionAttribute).Assembly);
         tester.TestState.AdditionalReferences.Add(typeof(global::Microsoft.Extensions.DependencyInjection.IServiceCollection).Assembly);
         tester.TestState.AdditionalReferences.Add(typeof(global::Scrutor.RegistrationStrategy).Assembly);
         await tester.RunAsync();
@@ -308,6 +308,7 @@ public static partial class ServiceCollectionExtensions
     public async Task Register_FromRegistrator()
     {
         var code = """
+using global::DependencyInjection.SourceGenerator.Microsoft.Contracts.Attributes;
 using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
 
 namespace DependencyInjection.SourceGenerator.Microsoft.Demo;

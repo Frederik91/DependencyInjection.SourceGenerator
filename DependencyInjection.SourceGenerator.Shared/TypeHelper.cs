@@ -20,16 +20,16 @@ internal static class TypeHelper
     internal static List<AttributeData> GetAttributes<TAttribute>(ImmutableArray<AttributeData> attributes) where TAttribute : Attribute
     {
         var result = new List<AttributeData>();
+        var fullName = "global::" + typeof(TAttribute).FullName;
         foreach (var attribute in attributes)
         {
             if (attribute.AttributeClass is null)
                 continue;
+            
+            var attributeName = "global::" + attribute.AttributeClass.ContainingNamespace + "." + attribute.AttributeClass.Name;
+            //var attributeName = attribute.AttributeClass.ToDisplayString(DisplayFormat);
 
-            var name = attribute.AttributeClass.Name;
-            if (!name.EndsWith("Attribute"))
-                name += "Attribute";
-
-            if (name == typeof(TAttribute).Name)
+            if (fullName == attributeName)
                 result.Add(attribute);
         }
         return result;

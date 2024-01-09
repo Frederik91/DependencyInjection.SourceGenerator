@@ -30,7 +30,6 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj" />
-	  <ProjectReference Include="..\DependencyInjection.SourceGenerator.Microsoft.Contracts\DependencyInjection.SourceGenerator.Microsoft.Contracts.csproj" />
 	</ItemGroup>
 
 </Project>

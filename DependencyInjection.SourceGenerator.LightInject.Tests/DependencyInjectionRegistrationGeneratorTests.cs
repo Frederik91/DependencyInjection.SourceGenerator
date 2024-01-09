@@ -28,6 +28,13 @@ public class DependencyInjectionRegistrationGeneratorTests
 
     private async Task RunTestAsync(string code, string expectedResult)
     {
+        var net8 = new ReferenceAssemblies(
+                    "net8.0",
+                    new PackageIdentity(
+                        "Microsoft.NETCore.App.Ref",
+                        "8.0.0"),
+                    Path.Combine("ref", "net8.0"));
+
         var tester = new VerifyCS.Test
         {
             TestState =
@@ -39,11 +46,12 @@ public class DependencyInjectionRegistrationGeneratorTests
                             SourceText.From(expectedResult, Encoding.UTF8))
                     }
                 },
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net60
+            ReferenceAssemblies = net8
         };
 
         tester.ReferenceAssemblies.AddAssemblies(_references);
-        tester.TestState.AdditionalReferences.Add(typeof(Contracts.Attributes.RegisterAttribute).Assembly);
+        tester.TestState.AdditionalReferences.Add(typeof(global::DependencyInjection.SourceGenerator.Contracts.Attributes.RegisterAllAttribute).Assembly);
+        tester.TestState.AdditionalReferences.Add(typeof(Contracts.Attributes.RegisterCompositionRootAttribute).Assembly);
         tester.TestState.AdditionalReferences.Add(typeof(global::LightInject.IServiceContainer).Assembly);
 
         await tester.RunAsync();
@@ -312,6 +320,39 @@ public class CompositionRoot : global::LightInject.ICompositionRoot
     {
         serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.MyBase, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service2>(new global::LightInject.PerRequestLifeTime());
         serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.MyBase, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service1>(new global::LightInject.PerRequestLifeTime());
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
+
+    [Fact]
+    public async Task RegisterCompositionRoot()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.LightInject.Contracts.Attributes;
+using LightInject;
+
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+
+[RegisterCompositionRoot]
+public class CustomCompositionRoot : ICompositionRoot
+{
+    public void Compose(IServiceRegistry serviceRegistry)
+    {
+    }
+
+}
+
+""";
+
+        var expected = _header + """
+public class CompositionRoot : global::LightInject.ICompositionRoot
+{
+    public void Compose(global::LightInject.IServiceRegistry serviceRegistry)
+    {
+        serviceRegistry.RegisterFrom<global::DependencyInjection.SourceGenerator.LightInject.Demo.CustomCompositionRoot>();
     }
 }
 """;

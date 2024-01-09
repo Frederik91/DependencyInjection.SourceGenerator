@@ -3,10 +3,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
-using DependencyInjection.SourceGenerator.Contracts.Attributes;
+using DependencyInjection.SourceGenerator.LightInject.Contracts.Attributes;
 using DependencyInjection.SourceGenerator.Contracts.Enums;
 using DependencyInjection.SourceGenerator.Shared;
-using System.Diagnostics;
 
 namespace DependencyInjection.SourceGenerator.LightInject;
 
@@ -15,19 +14,18 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 {
     public void Initialize(GeneratorInitializationContext context)
     {
-        context.RegisterForSyntaxNotifications(() => new ClassAttributeReceiver());
+        context.RegisterForSyntaxNotifications(() => new ClassAttributeReceiver(additionalClassAttributes: [nameof(RegisterCompositionRootAttribute)]));
     }
 
     public void Execute(GeneratorExecutionContext context)
     {
-        //Debugger.Launch();
         // Get first existing CompositionRoot class
         var compositionRoot = context.Compilation.SyntaxTrees
             .SelectMany(x => x.GetRoot().DescendantNodes())
             .OfType<ClassDeclarationSyntax>()
             .FirstOrDefault(x => x.Identifier.Text == "CompositionRoot");
 
-        if (compositionRoot is not null && !DependencyInjectionRegistrationGenerator.IsPartial(compositionRoot))
+        if (compositionRoot is not null && !IsPartial(compositionRoot))
         {
             var descriptor = new DiagnosticDescriptor("DIL01", "CompositionRoot not patial", "CompositionRoot must be partial", "LightInject", DiagnosticSeverity.Error, true);
             context.ReportDiagnostic(Diagnostic.Create(descriptor, compositionRoot.GetLocation()));
@@ -40,7 +38,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         var classesToRegister = RegistrationCollector.GetTypes(context);
         var registerAllTypes = RegistrationCollector.GetRegisterAllTypes(context);
 
-        var source = GenerateCompositionRoot(compositionRoot is not null, @namespace, classesToRegister, registerAllTypes);
+        var source = GenerateCompositionRoot(context, compositionRoot is not null, @namespace, classesToRegister, registerAllTypes);
         var sourceText = source.ToFullString();
         context.AddSource("CompositionRoot.g.cs", SourceText.From(sourceText, Encoding.UTF8));
     }
@@ -74,17 +72,17 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         throw new NotSupportedException("Unable to calculate namespace");
     }
 
-    private static CompilationUnitSyntax GenerateCompositionRoot(bool userdefinedCompositionRoot, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister, List<Registration> additionalRegistrations)
+    private static CompilationUnitSyntax GenerateCompositionRoot(GeneratorExecutionContext context, bool userDefinedCompositionRoot, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister, List<Registration> additionalRegistrations)
     {
         var modifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
 
-        if (userdefinedCompositionRoot)
+        if (userDefinedCompositionRoot)
             modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
 
         var classModifiers = SyntaxFactory.TokenList(modifiers);
 
         var bodyMembers = new List<ExpressionStatementSyntax>();
-        if (userdefinedCompositionRoot)
+        if (userDefinedCompositionRoot)
             bodyMembers.Add(CreateRegisterServicesCall());
 
         foreach (var type in classesToRegister)
@@ -96,6 +94,10 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
             var decoration = DecorationMapper.CreateDecoration(type);
             if (decoration is not null)
                 bodyMembers.Add(CreateServiceDecoration(decoration.DecoratedTypeName, decoration.DecoratorTypeName));
+
+            var registrationSyntax = CreateRegistrationExtensions(context, type);
+            if (registrationSyntax is not null)
+                bodyMembers.Add(registrationSyntax);
 
         }
 
@@ -126,6 +128,51 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
                         .AddMembers(methodDeclaration);
 
         return Trivia.CreateCompilationUnitSyntax(classDeclaration, @namespace);
+    }
+
+    internal static ExpressionStatementSyntax? CreateRegistrationExtensions(GeneratorExecutionContext context, INamedTypeSymbol type)
+    {
+        var attribute = TypeHelper.GetAttributes<RegisterCompositionRootAttribute>(type.GetAttributes()).FirstOrDefault();
+        if (attribute is null)
+            return null;
+
+        if (!TypeImplementsCompositionRoot(type))
+        {
+            var diagnostic = Diagnostic.Create(
+            new DiagnosticDescriptor(
+                "DIL0002",
+                "Invalid composition root implementation",
+                "Class {0} does not implement ICompositionRoot",
+                "InvalidConfig",
+                DiagnosticSeverity.Error,
+                true), null, type.Name);
+            context.ReportDiagnostic(diagnostic);
+            return null;
+        }
+
+        return CreateRegisterFromSyntax(type);
+    }
+
+    private static ExpressionStatementSyntax? CreateRegisterFromSyntax(INamedTypeSymbol type)
+    {
+        var typeName = type.ToDisplayString(TypeHelper.DisplayFormat);
+        var invocationExpression = SyntaxFactory.InvocationExpression(
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName("serviceRegistry"),
+                SyntaxFactory.GenericName(
+                    SyntaxFactory.Identifier("RegisterFrom"))
+                .WithTypeArgumentList(
+                    SyntaxFactory.TypeArgumentList(
+                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                            SyntaxFactory.IdentifierName(typeName))))));
+
+        return SyntaxFactory.ExpressionStatement(invocationExpression);
+    }
+
+    private static bool TypeImplementsCompositionRoot(INamedTypeSymbol type)
+    {
+        return type.AllInterfaces.Any(x => x.ToDisplayString(TypeHelper.DisplayFormat) == "global::LightInject.ICompositionRoot");
     }
 
     private static ExpressionStatementSyntax CreateServiceDecoration(string decoratedTypeName, string decoratorTypeName)

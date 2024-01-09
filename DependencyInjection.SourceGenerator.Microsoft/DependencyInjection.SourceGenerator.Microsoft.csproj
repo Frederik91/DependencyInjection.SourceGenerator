@@ -34,8 +34,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Microsoft.Contracts\DependencyInjection.SourceGenerator.Microsoft.Contracts.csproj" IncludeAssets="none" PrivateAssets="none" ExcludeAssets="all"  />
-		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj" IncludeAssets="none" PrivateAssets="none" ExcludeAssets="all"  />
+		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Microsoft.Contracts\DependencyInjection.SourceGenerator.Microsoft.Contracts.csproj" IncludeAssets="none" PrivateAssets="none" ExcludeAssets="all" />
+		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj" IncludeAssets="none" PrivateAssets="none" ExcludeAssets="all" />
 		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Shared\DependencyInjection.SourceGenerator.Shared.csproj" IncludeAssets="none" PrivateAssets="none" ExcludeAssets="all" />
 	</ItemGroup>
 

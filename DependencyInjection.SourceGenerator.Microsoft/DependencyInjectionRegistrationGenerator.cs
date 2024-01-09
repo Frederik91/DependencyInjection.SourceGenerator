@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 using System.Text;
 using DependencyInjection.SourceGenerator.Contracts.Enums;
 using DependencyInjection.SourceGenerator.Shared;
+using DependencyInjection.SourceGenerator.Microsoft.Contracts.Attributes;
 
 namespace DependencyInjection.SourceGenerator.Microsoft;
 
@@ -13,7 +14,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 {
     public void Initialize(GeneratorInitializationContext context)
     {
-        context.RegisterForSyntaxNotifications(() => new ClassAttributeReceiver());
+        context.RegisterForSyntaxNotifications(() => new ClassAttributeReceiver(additionalMethodAttributes: [nameof(RegistrationExtensionAttribute)]));
     }
 
     public void Execute(GeneratorExecutionContext context)
@@ -95,7 +96,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
             if (decoration is not null)
                 bodyMembers.Add(CreateDecorationSyntax(decoration.DecoratedTypeName, decoration.DecoratorTypeName));
 
-            var registrationExtensions = RegistrationExtensionMapper.CreateRegistrationExtensions(type);
+            var registrationExtensions = CreateRegistrationExtensions(type);
 
             foreach (var registrationExtension in registrationExtensions)
             {
@@ -164,6 +165,77 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
             SyntaxFactory.IdentifierName("DependencyInjection")));
 
         return Trivia.CreateCompilationUnitSyntax(classDeclaration, @namespace, [dependencyInjectionUsingDirective]);
+    }
+
+    internal static List<RegistrationExtension> CreateRegistrationExtensions(INamedTypeSymbol type)
+    {
+        var registrations = new List<RegistrationExtension>();
+        foreach (var member in type.GetMembers())
+        {
+            if (member is not IMethodSymbol method)
+                continue;
+
+            var attribute = TypeHelper.GetAttributes<RegistrationExtensionAttribute>(member.GetAttributes());
+            if (!attribute.Any())
+                continue;
+
+            List<Diagnostic> errors = [];
+            if (method.DeclaredAccessibility is not Accessibility.Public and not Accessibility.Internal and not Accessibility.Friend)
+            {
+                var diagnostic = Diagnostic.Create(
+                    new DiagnosticDescriptor(
+                        "DIM0001",
+                        "Invalid method accessor",
+                        "Method {0} on type {1} must be public or internal",
+                        "InvalidConfig",
+                        DiagnosticSeverity.Error,
+                        true), null, method.Name, type.Name);
+                errors.Add(diagnostic);
+            }
+
+            if (!method.IsStatic)
+            {
+                var diagnostic = Diagnostic.Create(
+                    new DiagnosticDescriptor(
+                        "DIM0002",
+                        "Method must be static",
+                        "Method {0} on type {1} must be static",
+                        "InvalidConfig",
+                        DiagnosticSeverity.Error,
+                        true), null, method.Name, type.Name);
+                errors.Add(diagnostic);
+            }
+
+            if (method.Parameters.Length != 1)
+            {
+                var diagnostic = Diagnostic.Create(
+                    new DiagnosticDescriptor(
+                        "DIM0002",
+                        "Invalid parameter count",
+                        "Method {0} on type {1} must have exactly one parameter of type IServiceCollection",
+                        "InvalidConfig",
+                        DiagnosticSeverity.Error,
+                        true), null, method.Name, type.Name);
+                errors.Add(diagnostic);
+            }
+
+            if (method.Parameters.FirstOrDefault()?.Type.ToDisplayString(TypeHelper.DisplayFormat) != "global::Microsoft.Extensions.DependencyInjection.IServiceCollection")
+            {
+                var diagnostic = Diagnostic.Create(
+                    new DiagnosticDescriptor(
+                        "DIM0002",
+                        "Invalid parameter type",
+                        "Method {0} on type {1} must have input parameter of type IServiceCollection",
+                        "InvalidConfig",
+                        DiagnosticSeverity.Error,
+                        true), null, method.Name, type.Name);
+                errors.Add(diagnostic);
+            }
+
+            var registration = new RegistrationExtension(type.ToDisplayString(TypeHelper.DisplayFormat), method.Name, errors);
+            registrations.Add(registration);
+        }
+        return registrations;
     }
 
     private static ExpressionStatementSyntax CreateRegistrationExtensionSyntax(string className, string methodName)

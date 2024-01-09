@@ -8,11 +8,23 @@ using System;
 namespace DependencyInjection.SourceGenerator.Shared;
 public class ClassAttributeReceiver : ISyntaxContextReceiver
 {
-    private static readonly string[] _classAttributes = [nameof(RegisterAttribute), nameof(DecorateAttribute)];
-    private static readonly string[] _methodAttributes = [nameof(RegistrationExtensionAttribute)];
-    private static readonly string[] _assemblyAttributes = [nameof(RegisterAllAttribute)];
+    private readonly string[] _classAttributes = [nameof(RegisterAttribute), nameof(DecorateAttribute)];
+    private readonly string[] _methodAttributes = [];
+    private readonly string[] _assemblyAttributes = [nameof(RegisterAllAttribute)];
 
     public List<INamedTypeSymbol> Classes { get; } = [];
+
+    public ClassAttributeReceiver(string[]? additionalAssemblyAttributes = null, string[]? additionalClassAttributes = null, string[]? additionalMethodAttributes = null)
+    {
+        if (additionalAssemblyAttributes is not null)
+            _assemblyAttributes = [.. _assemblyAttributes, .. additionalAssemblyAttributes];
+
+        if (additionalClassAttributes is not null)
+            _classAttributes = [.. _classAttributes, .. additionalClassAttributes];
+
+        if (additionalMethodAttributes is not null)
+            _methodAttributes = [.. _methodAttributes, .. additionalMethodAttributes];
+    }
 
 
     public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
