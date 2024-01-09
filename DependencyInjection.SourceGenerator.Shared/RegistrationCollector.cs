@@ -38,7 +38,8 @@ internal static class RegistrationCollector
             if (!bool.TryParse(includeServiceName?.ToString(), out var includeServiceNameValue))
                 includeServiceNameValue = false;
 
-            return GetImplementedTypes(serviceType, context, lifetimeValue, includeServiceNameValue);
+            var registrations = GetImplementedTypes(serviceType, context, lifetimeValue, includeServiceNameValue);
+            result.AddRange(registrations);
         }
 
         return result;
