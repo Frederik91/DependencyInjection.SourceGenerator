@@ -5,8 +5,8 @@ Register services using attributes instead of registering in code.
 Add the "Register" attribute to the class you want to register. The attribute takes a type and a lifetime. The type is the type you want to register and the lifetime is the lifetime of the service. The lifetime is optional and defaults to Transient.
 
 This library supports the following dependency injection frameworks, follow the links for more information on how to use them:
-- [Microsoft.Extensions.DependencyInjection](DependencyInjection.SourceGenerator.Microsoft/readme.md)
-- [LightInject](DependencyInjection.SourceGenerator.LightInject/readme.md)
+- [Microsoft.Extensions.DependencyInjection](DependencyInjection.SourceGenerator.Microsoft/README.md)
+- [LightInject](DependencyInjection.SourceGenerator.LightInject/README.md)
 
 To use this library you need to install the source generator package and the contacts package. 
 The source generator package is a development dependency and will not be exposed as a dependency to consumers of your projects, while the contracts package contains the attributes and enums used to configure the generator.
