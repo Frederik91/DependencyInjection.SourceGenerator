@@ -3,10 +3,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
-using DependencyInjection.SourceGenerator.Contracts.Attributes;
 using DependencyInjection.SourceGenerator.Contracts.Enums;
 using DependencyInjection.SourceGenerator.Shared;
-using System.Linq.Expressions;
+using DependencyInjection.SourceGenerator.Microsoft.Contracts.Attributes;
 
 namespace DependencyInjection.SourceGenerator.Microsoft;
 
@@ -15,19 +14,49 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 {
     public void Initialize(GeneratorInitializationContext context)
     {
-        context.RegisterForSyntaxNotifications(() => new ClassAttributeReceiver());
+        context.RegisterForSyntaxNotifications(() => new ClassAttributeReceiver(additionalMethodAttributes: [nameof(RegistrationExtensionAttribute)]));
     }
 
     public void Execute(GeneratorExecutionContext context)
     {
-        var @namespace = GetDefaultNamespace(context);
-        var extensionName = "Add" + context.Compilation.Assembly.Name.Replace(".", "");
+        var @namespace = "Microsoft.Extensions.DependencyInjection";
+        var safeAssemblyName = EscapeAssemblyNameToMethodName(context.Compilation.AssemblyName);
+        var extensionName = "Add" + safeAssemblyName;
 
         var classesToRegister = RegistrationCollector.GetTypes(context);
+        var registerAllTypes = RegistrationCollector.GetRegisterAllTypes(context);
 
-        var source = GenerateExtensionMethod(context, extensionName, @namespace, classesToRegister);
+        var source = GenerateExtensionMethod(context, extensionName, @namespace, classesToRegister, registerAllTypes);
         var sourceText = source.ToFullString();
         context.AddSource("ServiceCollectionExtensions.g.cs", SourceText.From(sourceText, Encoding.UTF8));
+    }
+
+    public static string EscapeAssemblyNameToMethodName(string? assemblyName)
+    {
+        if (string.IsNullOrWhiteSpace(assemblyName))
+            return "Default";
+
+        var sb = new StringBuilder();
+        var ensureNextUpper = true;
+        foreach (var c in assemblyName!)
+        {
+            if (char.IsLetterOrDigit(c))
+            {
+                var letter = c;
+                if (ensureNextUpper)
+                {
+                    letter = char.ToUpperInvariant(c);
+                    ensureNextUpper = false;
+                }
+                sb.Append(letter);
+            }
+            else
+            {
+                ensureNextUpper = true;
+                continue;
+            }
+        }
+        return sb.ToString();
     }
 
     private static string GetDefaultNamespace(GeneratorExecutionContext context)
@@ -53,7 +82,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         throw new NotSupportedException("Unable to calculate namespace");
     }
 
-    public static CompilationUnitSyntax GenerateExtensionMethod(GeneratorExecutionContext context, string extensionName, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister)
+    private static CompilationUnitSyntax GenerateExtensionMethod(GeneratorExecutionContext context, string extensionName, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister, IEnumerable<Registration> additionalRegistrations)
     {
         var bodyMembers = new List<ExpressionStatementSyntax>();
 
@@ -67,7 +96,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
             if (decoration is not null)
                 bodyMembers.Add(CreateDecorationSyntax(decoration.DecoratedTypeName, decoration.DecoratorTypeName));
 
-            var registrationExtensions = RegistrationExtensionMapper.CreateRegistrationExtensions(type);
+            var registrationExtensions = CreateRegistrationExtensions(type);
 
             foreach (var registrationExtension in registrationExtensions)
             {
@@ -83,7 +112,12 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
             }
         }
 
-        var modifiers = SyntaxFactory.TokenList([SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)]);
+        foreach (var registration in additionalRegistrations)
+        {
+            bodyMembers.Add(CreateRegistrationSyntax(registration.ServiceType, registration.ImplementationTypeName, registration.Lifetime, registration.ServiceName));
+        }
+
+        var methodModifiers = SyntaxFactory.TokenList([SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)]);
 
         var serviceCollectionSyntax = SyntaxFactory.QualifiedName(
                             SyntaxFactory.QualifiedName(
@@ -97,7 +131,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
                             SyntaxFactory.IdentifierName("IServiceCollection"));
 
         var methodDeclaration = SyntaxFactory.MethodDeclaration(serviceCollectionSyntax, SyntaxFactory.Identifier(extensionName))
-                            .WithModifiers(SyntaxFactory.TokenList(modifiers))
+                            .WithModifiers(SyntaxFactory.TokenList(methodModifiers))
                             .WithParameterList(
                                 SyntaxFactory.ParameterList(
                                     SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
@@ -115,8 +149,9 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
         methodDeclaration = methodDeclaration.WithBody(body);
 
+        var classModifiers = SyntaxFactory.TokenList([SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PartialKeyword)]);
         var classDeclaration = SyntaxFactory.ClassDeclaration("ServiceCollectionExtensions")
-                    .WithModifiers(modifiers)
+                    .WithModifiers(classModifiers)
                     .WithMembers(SyntaxFactory.SingletonList<MemberDeclarationSyntax>(methodDeclaration));
 
         var dependencyInjectionUsingDirective = SyntaxFactory.UsingDirective(
@@ -130,6 +165,77 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
             SyntaxFactory.IdentifierName("DependencyInjection")));
 
         return Trivia.CreateCompilationUnitSyntax(classDeclaration, @namespace, [dependencyInjectionUsingDirective]);
+    }
+
+    internal static List<RegistrationExtension> CreateRegistrationExtensions(INamedTypeSymbol type)
+    {
+        var registrations = new List<RegistrationExtension>();
+        foreach (var member in type.GetMembers())
+        {
+            if (member is not IMethodSymbol method)
+                continue;
+
+            var attribute = TypeHelper.GetAttributes<RegistrationExtensionAttribute>(member.GetAttributes());
+            if (!attribute.Any())
+                continue;
+
+            List<Diagnostic> errors = [];
+            if (method.DeclaredAccessibility is not Accessibility.Public and not Accessibility.Internal and not Accessibility.Friend)
+            {
+                var diagnostic = Diagnostic.Create(
+                    new DiagnosticDescriptor(
+                        "DIM0001",
+                        "Invalid method accessor",
+                        "Method {0} on type {1} must be public or internal",
+                        "InvalidConfig",
+                        DiagnosticSeverity.Error,
+                        true), null, method.Name, type.Name);
+                errors.Add(diagnostic);
+            }
+
+            if (!method.IsStatic)
+            {
+                var diagnostic = Diagnostic.Create(
+                    new DiagnosticDescriptor(
+                        "DIM0002",
+                        "Method must be static",
+                        "Method {0} on type {1} must be static",
+                        "InvalidConfig",
+                        DiagnosticSeverity.Error,
+                        true), null, method.Name, type.Name);
+                errors.Add(diagnostic);
+            }
+
+            if (method.Parameters.Length != 1)
+            {
+                var diagnostic = Diagnostic.Create(
+                    new DiagnosticDescriptor(
+                        "DIM0002",
+                        "Invalid parameter count",
+                        "Method {0} on type {1} must have exactly one parameter of type IServiceCollection",
+                        "InvalidConfig",
+                        DiagnosticSeverity.Error,
+                        true), null, method.Name, type.Name);
+                errors.Add(diagnostic);
+            }
+
+            if (method.Parameters.FirstOrDefault()?.Type.ToDisplayString(TypeHelper.DisplayFormat) != "global::Microsoft.Extensions.DependencyInjection.IServiceCollection")
+            {
+                var diagnostic = Diagnostic.Create(
+                    new DiagnosticDescriptor(
+                        "DIM0002",
+                        "Invalid parameter type",
+                        "Method {0} on type {1} must have input parameter of type IServiceCollection",
+                        "InvalidConfig",
+                        DiagnosticSeverity.Error,
+                        true), null, method.Name, type.Name);
+                errors.Add(diagnostic);
+            }
+
+            var registration = new RegistrationExtension(type.ToDisplayString(TypeHelper.DisplayFormat), method.Name, errors);
+            registrations.Add(registration);
+        }
+        return registrations;
     }
 
     private static ExpressionStatementSyntax CreateRegistrationExtensionSyntax(string className, string methodName)

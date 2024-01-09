@@ -4,7 +4,9 @@ Register services using attributes instead of registering in code.
 ## Usage
 Add the "Register" attribute to the class you want to register. The attribute takes a type and a lifetime. The type is the type you want to register and the lifetime is the lifetime of the service. The lifetime is optional and defaults to Transient.
 
-### Microsoft.Extensions.DependencyInjection
+To use this library you need to install the source generator package and the contacts package. 
+The source generator package is a development dependency and will not be exposed as a dependency to consumers of your projects, while the contracts package contains the attributes and enums used to configure the generator.
+
 
 ```csharp
 
@@ -94,7 +96,28 @@ public static class ServiceCollectionExtensions
 }
 ```
 
-You can also create a method that will be called by the AddMyProject method. This is useful if you want to register services in a different way.
+This can then be used like this: 
+```csharp
+var services = new ServiceCollection();
+services.AddMyProject();
+```
+
+for AspNetCore web APIs:
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+	services.AddMyProject();
+}
+```
+
+and for minimal APIs:
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddMyProject();
+```
+
+You can also create a method that will be called by the AddMyProject method. This is useful if you want to register services from other libraries
 
 ```csharp
 using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
@@ -121,6 +144,54 @@ public static class ServiceCollectionExtensions
         global::DependencyInjection.SourceGenerator.Microsoft.Demo.Registrator.Register(services);
         return services;
     }
+}
+```
+
+### Register all services in the project
+You can also register all services in an project by adding the RegisterAll attribute to the assembly. This will register all implementations of the specified type.
+
+```csharp
+
+using DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+[assembly: RegisterAll<IExampleService>]
+
+namespace RootNamespace.Services;
+
+public interface IExampleService
+{
+	string GetExample();
+}
+
+public class ExampleService1 : IExampleService
+{
+	public string GetExample()
+	{
+		return "Example 1";
+	}
+}
+
+public class ExampleService2 : IExampleService
+{
+	public string GetExample()
+	{
+		return "Example 2";
+	}
+}
+
+```
+
+this will generate the following code:
+
+```csharp
+public static class ServiceCollectionExtensions
+{
+	public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+	{
+		services.AddTransient<global::RootNamespace.Services.IExampleService, global::RootNamespace.Services.ExampleService1>();
+		services.AddTransient<global::RootNamespace.Services.IExampleService, global::RootNamespace.Services.ExampleService2>();
+		return services;
+	}
 }
 ```
 

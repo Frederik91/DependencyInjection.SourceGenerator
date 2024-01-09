@@ -65,6 +65,54 @@ public partial class CompositionRoot
 }
 ```
 
+### Register all services in the project
+You can also register all services in an project by adding the RegisterAll attribute to the assembly. This will register all implementations of the specified type.
+
+```csharp
+
+using DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+[assembly: RegisterAll<IExampleService>]
+
+namespace RootNamespace.Services;
+
+public interface IExampleService
+{
+	string GetExample();
+}
+
+public class ExampleService1 : IExampleService
+{
+	public string GetExample()
+	{
+		return "Example 1";
+	}
+}
+
+public class ExampleService2 : IExampleService
+{
+	public string GetExample()
+	{
+		return "Example 2";
+	}
+}
+
+```
+
+this will generate the following code:
+
+```csharp
+
+public class CompositionRoot : ICompositionRoot
+{
+	public static void Compose(IServiceRegistry serviceRegistry)
+	{
+		serviceRegistry.Register<IExampleService, ExampleService1>(new PerContainerLifetime());
+		serviceRegistry.Register<IExampleService, ExampleService2>(new PerContainerLifetime());		
+	}
+}
+```
+
 ## Lifetime
 The lifetime is an enum with the following values:
 - Transient

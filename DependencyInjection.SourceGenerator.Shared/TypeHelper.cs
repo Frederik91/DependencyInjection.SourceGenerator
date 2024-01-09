@@ -1,6 +1,7 @@
 ﻿using DependencyInjection.SourceGenerator.Contracts.Attributes;
 using Microsoft.CodeAnalysis;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -10,27 +11,28 @@ internal static class TypeHelper
     internal static SymbolDisplayFormat DisplayFormat { get; } = SymbolDisplayFormat.FullyQualifiedFormat;
 
 
-    internal static AttributeData? GetClassAttribute<TAttribute>(INamedTypeSymbol type) where TAttribute : Attribute
+    internal static List<AttributeData> GetClassAttributes<TAttribute>(INamedTypeSymbol type) where TAttribute : Attribute
     {
         var attributes = type.GetAttributes();
-        return GetAttribute<TAttribute>(attributes);
+        return GetAttributes<TAttribute>(attributes);
     }
 
-    internal static AttributeData? GetAttribute<TAttribute>(ImmutableArray<AttributeData> attributes) where TAttribute : Attribute
+    internal static List<AttributeData> GetAttributes<TAttribute>(ImmutableArray<AttributeData> attributes) where TAttribute : Attribute
     {
+        var result = new List<AttributeData>();
+        var fullName = "global::" + typeof(TAttribute).FullName;
         foreach (var attribute in attributes)
         {
             if (attribute.AttributeClass is null)
                 continue;
+            
+            var attributeName = "global::" + attribute.AttributeClass.ContainingNamespace + "." + attribute.AttributeClass.Name;
+            //var attributeName = attribute.AttributeClass.ToDisplayString(DisplayFormat);
 
-            var name = attribute.AttributeClass.Name;
-            if (!name.EndsWith("Attribute"))
-                name += "Attribute";
-
-            if (name == typeof(TAttribute).Name)
-                return attribute;
+            if (fullName == attributeName)
+                result.Add(attribute);
         }
-        return null;
+        return result;
     }
 
     internal static object? GetAttributeValue(AttributeData attribute, string key)
@@ -48,6 +50,9 @@ internal static class TypeHelper
 
         if (attribute.AttributeClass?.ConstructedFrom is INamedTypeSymbol attributeClass && attributeClass.IsGenericType && attribute.AttributeClass?.TypeArguments.Length > 0)
             return attribute.AttributeClass?.TypeArguments[0] as INamedTypeSymbol;
+
+        if (attribute.ConstructorArguments.Length > 0 && attribute.ConstructorArguments[0].Value is INamedTypeSymbol argumentServiceType)
+            return argumentServiceType;            
 
         return default;
     }

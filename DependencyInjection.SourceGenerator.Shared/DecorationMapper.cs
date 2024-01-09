@@ -1,12 +1,13 @@
 ﻿using DependencyInjection.SourceGenerator.Contracts.Attributes;
 using Microsoft.CodeAnalysis;
+using System.Linq;
 
 namespace DependencyInjection.SourceGenerator.Shared;
 internal static class DecorationMapper
 {
     internal static Decoration? CreateDecoration(INamedTypeSymbol type)
     {
-        var attribute = TypeHelper.GetClassAttribute<DecorateAttribute>(type);
+        var attribute = TypeHelper.GetClassAttributes<DecorateAttribute>(type).FirstOrDefault();
 
         if (attribute is null)
             return null;
