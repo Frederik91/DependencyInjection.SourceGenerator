@@ -9,7 +9,7 @@ public interface IRegisterAllAttribute
     bool IncludeServiceName { get; } 
 }
 
-[AttributeUsage(AttributeTargets.Assembly)]
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
 public class RegisterAllAttribute(Type serviceType) : Attribute, IRegisterAllAttribute
 {
     public Lifetime Lifetime { get; set; } = Lifetime.Transient;
@@ -24,7 +24,7 @@ public class RegisterAllAttribute(Type serviceType) : Attribute, IRegisterAllAtt
 }
 
 
-[AttributeUsage(AttributeTargets.Assembly)]
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
 public class RegisterAllAttribute<TServiceType> : Attribute, IRegisterAllAttribute
 {
     public Lifetime Lifetime { get; set; } = Lifetime.Transient;

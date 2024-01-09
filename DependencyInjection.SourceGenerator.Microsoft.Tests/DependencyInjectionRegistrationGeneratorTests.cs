@@ -344,13 +344,18 @@ public static partial class ServiceCollectionExtensions
         var code = """
 using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
 
-[assembly: RegisterAll<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService>]
+[assembly: RegisterAll<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IServiceA>]
+[assembly: RegisterAll<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IServiceB>]
 
 namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
 
-public class Service1 : IService {}
-public class Service2 : IService {}
-public interface IService {}
+public class ServiceA1 : IServiceA {}
+public class ServiceA2 : IServiceA {}
+public interface IServiceA {}
+
+public class ServiceB1 : IServiceB {}
+public class ServiceB2 : IServiceB {}
+public interface IServiceB {}
 
 """;
 
@@ -359,8 +364,10 @@ public static partial class ServiceCollectionExtensions
 {
     public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
     {
-        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service2>();
-        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service1>();
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IServiceA, global::DependencyInjection.SourceGenerator.Microsoft.Demo.ServiceA2>();
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IServiceA, global::DependencyInjection.SourceGenerator.Microsoft.Demo.ServiceA1>();
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IServiceB, global::DependencyInjection.SourceGenerator.Microsoft.Demo.ServiceB2>();
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IServiceB, global::DependencyInjection.SourceGenerator.Microsoft.Demo.ServiceB1>();
         return services;
     }
 }
