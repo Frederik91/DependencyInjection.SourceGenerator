@@ -6,6 +6,9 @@ using VerifyCS = DependencyInjection.SourceGenerator.Microsoft.Tests.CSharpSourc
 using Microsoft.CodeAnalysis.Testing;
 using NuGet.Frameworks;
 using FluentAssertions;
+using Microsoft.CodeAnalysis.CSharp;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace DependencyInjection.SourceGenerator.Microsoft.Tests;
 
@@ -104,6 +107,61 @@ public static partial class ServiceCollectionExtensions
     }
 
     [Fact]
+    public void Register_UndefinedService()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+[Register<IService>]
+public class Service : IService {}
+
+""";
+
+        var expected = _header + """
+public static partial class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service>();
+        return services;
+    }
+}
+""";
+        List<MetadataReference> references = [];
+        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+        foreach (Assembly assembly in assemblies)
+        {
+            if (!assembly.IsDynamic)
+            {
+                references.Add(MetadataReference.CreateFromFile(assembly.Location));
+            }
+        }
+
+        var syntax = CSharpSyntaxTree.ParseText(code);
+
+        var compilation = CSharpCompilation.Create(
+            "TestProject",
+            syntaxTrees: [syntax],
+            references: references,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var driver = CSharpGeneratorDriver
+            .Create(new DependencyInjectionRegistrationGenerator());
+
+        driver.RunGeneratorsAndUpdateCompilation(
+            compilation,
+            out Compilation outputCompilation,
+            out ImmutableArray<Diagnostic> diagnostics);
+
+        var generatedSource = outputCompilation.SyntaxTrees.Last().ToString();
+
+        generatedSource.Should().Be(expected);
+    }
+
+    [Fact]
     public async Task Register_ScopedLifetime_And_ServiceName()
     {
         var code = """
@@ -162,7 +220,7 @@ public static partial class ServiceCollectionExtensions
     }
 
     [Fact]
-    public async Task Register_NoInteface()
+    public async Task Register_NoInteface_Or_BaseClass()
     {
         var code = """
     using DependencyInjection.SourceGenerator.Contracts.Attributes;
@@ -463,6 +521,38 @@ public static partial class ServiceCollectionExtensions
     {
         services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService<int>, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service2>();
         services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService<string>, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service1>();
+        return services;
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
+
+    [Fact]
+    public async Task RegisterAll_GenericBaseType()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+using global::DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+[assembly: RegisterAll(typeof(Base<>))]
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+public abstract class Base<TType> { }
+public class Service1 : Base<string> {}
+public class Service2 : Base<int> {}
+
+""";
+
+        var expected = _header + """
+public static partial class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.Base<int>, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service2>();
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.Base<string>, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service1>();
         return services;
     }
 }

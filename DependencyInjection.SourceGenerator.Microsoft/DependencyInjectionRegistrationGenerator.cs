@@ -219,7 +219,8 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
                 errors.Add(diagnostic);
             }
 
-            if (method.Parameters.FirstOrDefault()?.Type.ToDisplayString(TypeHelper.DisplayFormat) != "global::Microsoft.Extensions.DependencyInjection.IServiceCollection")
+            var firstParameter = method.Parameters.FirstOrDefault();
+            if (firstParameter is not null && TypeHelper.GetFullName(firstParameter.Type) != "global::Microsoft.Extensions.DependencyInjection.IServiceCollection")
             {
                 var diagnostic = Diagnostic.Create(
                     new DiagnosticDescriptor(
@@ -232,7 +233,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
                 errors.Add(diagnostic);
             }
 
-            var registration = new RegistrationExtension(type.ToDisplayString(TypeHelper.DisplayFormat), method.Name, errors);
+            var registration = new RegistrationExtension(TypeHelper.GetFullName(type), method.Name, errors);
             registrations.Add(registration);
         }
         return registrations;

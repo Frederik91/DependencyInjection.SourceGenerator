@@ -27,7 +27,7 @@ internal static class RegistrationMapper
         // Get the value of the property
         var serviceName = serviceNameArgument?.ToString();
 
-        var implementationTypeName = type.ToDisplayString(TypeHelper.DisplayFormat);
+        var implementationTypeName = TypeHelper.GetFullName(type);
 
         if (TypeHelper.IsSameType(type, serviceType.Type))
         {

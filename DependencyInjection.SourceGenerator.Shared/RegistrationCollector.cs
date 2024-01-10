@@ -78,10 +78,10 @@ internal static class RegistrationCollector
         {
             return new Registration
             {
-                ImplementationTypeName = type.ToDisplayString(TypeHelper.DisplayFormat),
+                ImplementationTypeName = TypeHelper.GetFullName(type),
                 Lifetime = lifetime,
                 ServiceName = includeServiceNameValue ? type.Name : null,
-                ServiceType = baseTypeImplementation.ToDisplayString(TypeHelper.DisplayFormat)
+                ServiceType = TypeHelper.GetFullName(baseTypeImplementation, type.ContainingNamespace)
             };
         }
         return null;
@@ -89,27 +89,29 @@ internal static class RegistrationCollector
 
     private static Registration? GetRegistrationByInterface(INamedTypeSymbol type, INamedTypeSymbol serviceType, Lifetime lifetime, bool includeServiceNameValue)
     {
-        var serviceTypeName = serviceType.ToDisplayString(TypeHelper.DisplayFormat);
+        var typeName = TypeHelper.GetFullName(type);
+        var serviceTypeName = TypeHelper.GetFullName(serviceType, type.ContainingNamespace);
         foreach (var implInterface in type.AllInterfaces)
         {
+            var implInterfaceName = TypeHelper.GetFullName(implInterface, type.ContainingNamespace);
             if (serviceType.IsUnboundGenericType)
             {
-                if (implInterface.IsGenericType && implInterface.ConstructUnboundGenericType().ToDisplayString(TypeHelper.DisplayFormat) == serviceTypeName)
+                if (implInterface.IsGenericType && TypeHelper.GetFullName(implInterface.ConstructUnboundGenericType(), type.ContainingNamespace) == serviceTypeName)
                 {
                     return new Registration
                     {
-                        ImplementationTypeName = type.ToDisplayString(TypeHelper.DisplayFormat),
+                        ImplementationTypeName = typeName,
                         Lifetime = lifetime,
                         ServiceName = includeServiceNameValue ? type.Name : null,
-                        ServiceType = implInterface.ToDisplayString(TypeHelper.DisplayFormat)
+                        ServiceType = implInterfaceName
                     };
                 }
             }
-            else if (implInterface.ToDisplayString(TypeHelper.DisplayFormat) == serviceTypeName)
+            else if (implInterfaceName == serviceTypeName)
             {
                 return new Registration
                 {
-                    ImplementationTypeName = type.ToDisplayString(TypeHelper.DisplayFormat),
+                    ImplementationTypeName = typeName,
                     Lifetime = lifetime,
                     ServiceName = includeServiceNameValue ? type.Name : null,
                     ServiceType = serviceTypeName
@@ -126,13 +128,13 @@ internal static class RegistrationCollector
 
         if (typeToCheck.IsUnboundGenericType)
         {
-            if (baseType.IsGenericType && baseType.ConstructUnboundGenericType().ToDisplayString(TypeHelper.DisplayFormat) == typeToCheck.ToDisplayString(TypeHelper.DisplayFormat))
+            if (baseType.IsGenericType && TypeHelper.GetFullName(baseType.ConstructUnboundGenericType(), type.ContainingNamespace) == TypeHelper.GetFullName(typeToCheck, type.ContainingNamespace))
                 return baseType;
 
             return GetBaseTypeImplementation(baseType, typeToCheck);
         }
 
-        if (baseType.ToDisplayString(TypeHelper.DisplayFormat) == typeToCheck.ToDisplayString(TypeHelper.DisplayFormat))
+        if (TypeHelper.GetFullName(baseType, type.ContainingNamespace) == TypeHelper.GetFullName(typeToCheck, type.ContainingNamespace))
             return baseType;
 
         return GetBaseTypeImplementation(baseType, typeToCheck);
