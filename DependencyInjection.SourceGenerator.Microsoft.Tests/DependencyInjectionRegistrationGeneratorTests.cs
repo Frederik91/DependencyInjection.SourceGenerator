@@ -114,8 +114,10 @@ using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
 
 namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
 
+public class Base {}
+
 [Register]
-public class Service1 : IService {}
+public class Service1 : Base, IService {}
 
 [Register<IService>]
 public class Service2 : IService {}

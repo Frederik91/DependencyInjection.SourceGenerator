@@ -88,7 +88,7 @@ internal static class TypeHelper
             return new(type.BaseType, baseTypeName);
         }
 
-        var interfaceTypeName = GetFullName(interfaceType, interfaceType.ContainingNamespace);
+        var interfaceTypeName = GetFullName(interfaceType, type.ContainingNamespace);
         return new(interfaceType, interfaceTypeName);
     }
 
