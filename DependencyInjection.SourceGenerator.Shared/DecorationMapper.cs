@@ -12,14 +12,14 @@ internal static class DecorationMapper
         if (attribute is null)
             return null;
 
-        var serviceTypeName = TypeHelper.GetServiceType(type, attribute);
-        if (serviceTypeName is null)
+        var serviceType = TypeHelper.GetServiceType(type, attribute);
+        if (serviceType is null)
             return null;
 
         return new Decoration
         {
-            DecoratorTypeName = type.ToDisplayString(TypeHelper.DisplayFormat),
-            DecoratedTypeName = serviceTypeName.Name
+            DecoratorTypeName = TypeHelper.GetFullName(type),
+            DecoratedTypeName = serviceType.Name
         };
     }
 }

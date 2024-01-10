@@ -155,7 +155,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
     private static ExpressionStatementSyntax? CreateRegisterFromSyntax(INamedTypeSymbol type)
     {
-        var typeName = type.ToDisplayString(TypeHelper.DisplayFormat);
+        var typeName = TypeHelper.GetFullName(type);
         var invocationExpression = SyntaxFactory.InvocationExpression(
             SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
@@ -172,7 +172,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
     private static bool TypeImplementsCompositionRoot(INamedTypeSymbol type)
     {
-        return type.AllInterfaces.Any(x => x.ToDisplayString(TypeHelper.DisplayFormat) == "global::LightInject.ICompositionRoot");
+        return type.AllInterfaces.Any(x => TypeHelper.GetFullName(x) == "global::LightInject.ICompositionRoot");
     }
 
     private static ExpressionStatementSyntax CreateServiceDecoration(string decoratedTypeName, string decoratorTypeName)
