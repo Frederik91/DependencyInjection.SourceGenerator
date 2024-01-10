@@ -114,8 +114,14 @@ using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
 
 namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
 
+[Register]
+public class Service1 : IService {}
+
 [Register<IService>]
-public class Service : IService {}
+public class Service2 : IService {}
+
+[Register(typeof(IService))]
+public class Service3 : IService {}
 
 """;
 
@@ -124,7 +130,9 @@ public static partial class ServiceCollectionExtensions
 {
     public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
     {
-        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service>();
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service1>();
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service2>();
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service3>();
         return services;
     }
 }
