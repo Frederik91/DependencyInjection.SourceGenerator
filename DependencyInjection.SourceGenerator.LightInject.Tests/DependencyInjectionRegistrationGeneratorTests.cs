@@ -86,6 +86,37 @@ public class CompositionRoot : global::LightInject.ICompositionRoot
     }
 
     [Fact]
+    public async Task CreateCompositionRoot_RegisterService_NoExistingCompositionRoot_MultipleRegistrations()
+    {
+        var code = """
+using DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+
+[Register(ServiceType = typeof(IService1))]
+[Register(ServiceType = typeof(IService2))]
+public class Service : IService1, IService2 {}
+public interface IService1 {}
+public interface IService2 {}
+
+""";
+
+        var expected = _header + """
+public class CompositionRoot : global::LightInject.ICompositionRoot
+{
+    public void Compose(global::LightInject.IServiceRegistry serviceRegistry)
+    {
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.IService1, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service>(new global::LightInject.PerRequestLifeTime());
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.IService2, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service>(new global::LightInject.PerRequestLifeTime());
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
+    }
+
+    [Fact]
     public async Task CreateCompositionRoot_RegisterService_ExistingCompositionRoot()
     {
         var code = """

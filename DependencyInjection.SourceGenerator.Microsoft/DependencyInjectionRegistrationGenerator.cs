@@ -9,6 +9,8 @@ using DependencyInjection.SourceGenerator.Microsoft.Contracts.Attributes;
 
 namespace DependencyInjection.SourceGenerator.Microsoft;
 
+public record RegistrationExtension(string ClassFullName, string MethodName, List<Diagnostic> Errors);
+
 [Generator]
 public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 {
@@ -88,9 +90,11 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
         foreach (var type in classesToRegister)
         {
-            var registration = RegistrationExtensionMapper.CreateRegistration(type);
-            if (registration is not null)
-                bodyMembers.Add(CreateRegistrationSyntax(registration.ServiceType, registration.ImplementationTypeName, registration.Lifetime, registration.ServiceName));
+            var registrations = RegistrationMapper.CreateRegistration(type);
+            foreach (var registration in registrations)
+            {
+                bodyMembers.Add(CreateRegistrationSyntax(registration.ServiceType, registration.ImplementationTypeName, registration.Lifetime, registration.ServiceName));                
+            }
 
             var decoration = DecorationMapper.CreateDecoration(type);
             if (decoration is not null)
