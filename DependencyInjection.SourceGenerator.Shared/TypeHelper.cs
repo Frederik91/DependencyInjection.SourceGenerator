@@ -107,6 +107,11 @@ internal static class TypeHelper
 
         return $"{fallbackNamespace.ToDisplayString(_displayFormat)}.{type.Name}";
     }
+
+    internal static object? GetConstructorArgumentValue<TType>(AttributeData attribute)
+    {
+        return attribute.ConstructorArguments.FirstOrDefault(x => x.Type?.Name == typeof(TType).Name).Value;        
+    }
 }
 
 public record ServiceType(INamedTypeSymbol Type, string Name);

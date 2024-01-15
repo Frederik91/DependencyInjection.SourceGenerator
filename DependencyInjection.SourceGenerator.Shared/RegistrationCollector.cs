@@ -31,6 +31,8 @@ internal static class RegistrationCollector
                 continue;
 
             var lifetime = TypeHelper.GetAttributeValue(registerAllAttribute, nameof(RegisterAllAttribute.Lifetime));
+            if (lifetime is null)
+                lifetime = TypeHelper.GetConstructorArgumentValue<Lifetime>(registerAllAttribute);
             if (!Enum.TryParse<Lifetime>(lifetime?.ToString(), out var lifetimeValue))
                 lifetimeValue = Lifetime.Transient;
 

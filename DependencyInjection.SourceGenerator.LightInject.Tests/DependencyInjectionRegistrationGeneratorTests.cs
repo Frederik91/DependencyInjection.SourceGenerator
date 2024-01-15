@@ -299,6 +299,37 @@ public class CompositionRoot : global::LightInject.ICompositionRoot
     }
 
     [Fact]
+    public async Task RegisterAll_SpecifyLifetime()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+using global::DependencyInjection.SourceGenerator.Contracts.Enums;
+
+[assembly: RegisterAll(typeof(global::DependencyInjection.SourceGenerator.LightInject.Demo.IService<>), Lifetime.Singleton)]
+
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+
+public class Service1 : IService<string> {}
+public class Service2 : IService<int> {}
+public interface IService<T> {}
+
+""";
+
+        var expected = _header + """
+public class CompositionRoot : global::LightInject.ICompositionRoot
+{
+    public void Compose(global::LightInject.IServiceRegistry serviceRegistry)
+    {
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.IService<int>, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service2>(new global::LightInject.PerContainerLifetime());
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.IService<string>, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service1>(new global::LightInject.PerContainerLifetime());
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
+
+    [Fact]
     public async Task RegisterAll_ByBaseType_WithServiceName()
     {
         var code = """

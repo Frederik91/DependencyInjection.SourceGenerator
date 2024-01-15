@@ -475,6 +475,39 @@ public static partial class ServiceCollectionExtensions
         await RunTestAsync(code, expected);
     }
 
+
+    [Fact]
+    public async Task RegisterAll_SpecifyLifetime()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+using global::DependencyInjection.SourceGenerator.Contracts.Enums;
+
+[assembly: RegisterAll<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService>(Lifetime = Lifetime.Singleton)]
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+public class Service1 : IService {}
+public class Service2 : IService {}
+public interface IService {}
+
+""";
+
+        var expected = _header + """
+public static partial class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        services.AddSingleton<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service2>();
+        services.AddSingleton<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service1>();
+        return services;
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
+
     [Fact]
     public async Task RegisterAll_ByBaseType_WithServiceName()
     {
