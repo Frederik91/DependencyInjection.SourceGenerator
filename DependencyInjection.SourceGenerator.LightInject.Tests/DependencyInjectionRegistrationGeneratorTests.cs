@@ -86,6 +86,37 @@ public class CompositionRoot : global::LightInject.ICompositionRoot
     }
 
     [Fact]
+    public async Task CreateCompositionRoot_RegisterService_NoExistingCompositionRoot_MultipleRegistrations()
+    {
+        var code = """
+using DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+
+[Register(ServiceType = typeof(IService1))]
+[Register(ServiceType = typeof(IService2))]
+public class Service : IService1, IService2 {}
+public interface IService1 {}
+public interface IService2 {}
+
+""";
+
+        var expected = _header + """
+public class CompositionRoot : global::LightInject.ICompositionRoot
+{
+    public void Compose(global::LightInject.IServiceRegistry serviceRegistry)
+    {
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.IService1, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service>(new global::LightInject.PerRequestLifeTime());
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.IService2, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service>(new global::LightInject.PerRequestLifeTime());
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+        Assert.True(true); // silence warnings, real test happens in the RunAsync() method
+    }
+
+    [Fact]
     public async Task CreateCompositionRoot_RegisterService_ExistingCompositionRoot()
     {
         var code = """
@@ -260,6 +291,37 @@ public class CompositionRoot : global::LightInject.ICompositionRoot
     {
         serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.IService, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service2>(new global::LightInject.PerRequestLifeTime());
         serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.IService, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service1>(new global::LightInject.PerRequestLifeTime());
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
+
+    [Fact]
+    public async Task RegisterAll_SpecifyLifetime()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+using global::DependencyInjection.SourceGenerator.Contracts.Enums;
+
+[assembly: RegisterAll(typeof(global::DependencyInjection.SourceGenerator.LightInject.Demo.IService<>), Lifetime.Singleton)]
+
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+
+public class Service1 : IService<string> {}
+public class Service2 : IService<int> {}
+public interface IService<T> {}
+
+""";
+
+        var expected = _header + """
+public class CompositionRoot : global::LightInject.ICompositionRoot
+{
+    public void Compose(global::LightInject.IServiceRegistry serviceRegistry)
+    {
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.IService<int>, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service2>(new global::LightInject.PerContainerLifetime());
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.IService<string>, global::DependencyInjection.SourceGenerator.LightInject.Demo.Service1>(new global::LightInject.PerContainerLifetime());
     }
 }
 """;

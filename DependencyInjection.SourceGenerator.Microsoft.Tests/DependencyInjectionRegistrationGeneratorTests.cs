@@ -107,6 +107,37 @@ public static partial class ServiceCollectionExtensions
     }
 
     [Fact]
+    public async Task Register_MultipleServices()
+    {
+        var code = """
+using DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+    [Register(ServiceType = typeof(IService1))]
+    [Register(ServiceType = typeof(IService2))]
+    public class Service : IService1, IService2 {}
+    public interface IService1 {}
+    public interface IService2 {}
+
+""";
+
+        var expected = _header + """
+public static partial class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService1, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service>();
+        services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService2, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service>();
+        return services;
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
+
+    [Fact]
     public void Register_UndefinedService()
     {
         var code = """
@@ -436,6 +467,39 @@ public static partial class ServiceCollectionExtensions
         services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IServiceA, global::DependencyInjection.SourceGenerator.Microsoft.Demo.ServiceA1>();
         services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IServiceB, global::DependencyInjection.SourceGenerator.Microsoft.Demo.ServiceB2>();
         services.AddTransient<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IServiceB, global::DependencyInjection.SourceGenerator.Microsoft.Demo.ServiceB1>();
+        return services;
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
+
+
+    [Fact]
+    public async Task RegisterAll_SpecifyLifetime()
+    {
+        var code = """
+using global::DependencyInjection.SourceGenerator.Contracts.Attributes;
+using global::DependencyInjection.SourceGenerator.Contracts.Enums;
+
+[assembly: RegisterAll<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService>(Lifetime = Lifetime.Singleton)]
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+public class Service1 : IService {}
+public class Service2 : IService {}
+public interface IService {}
+
+""";
+
+        var expected = _header + """
+public static partial class ServiceCollectionExtensions
+{
+    public static global::Microsoft.Extensions.DependencyInjection.IServiceCollection AddTestProject(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+    {
+        services.AddSingleton<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service2>();
+        services.AddSingleton<global::DependencyInjection.SourceGenerator.Microsoft.Demo.IService, global::DependencyInjection.SourceGenerator.Microsoft.Demo.Service1>();
         return services;
     }
 }

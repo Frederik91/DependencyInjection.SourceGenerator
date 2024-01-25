@@ -8,7 +8,7 @@ public interface IRegisterAttribute
     public string? ServiceName { get; }
 }
 
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class RegisterAttribute : Attribute, IRegisterAttribute
 {
     public Lifetime Lifetime { get; set; } = Lifetime.Transient;
@@ -16,7 +16,7 @@ public class RegisterAttribute : Attribute, IRegisterAttribute
     public Type? ServiceType { get; set; }
 }
 
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class RegisterAttribute<TServiceType> : Attribute, IRegisterAttribute
 {
     public Lifetime Lifetime { get; set; } = Lifetime.Transient;

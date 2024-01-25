@@ -87,9 +87,12 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
         foreach (var type in classesToRegister)
         {
-            var registration = RegistrationMapper.CreateRegistration(type);
-            if (registration is not null)
-                bodyMembers.Add(CreateServiceRegistration(registration.ServiceType, registration.ImplementationTypeName, registration.Lifetime, registration.ServiceName));
+            var registrations = RegistrationMapper.CreateRegistration(type);
+            foreach (var registration in registrations)
+            {
+                if (registrations is not null)
+                    bodyMembers.Add(CreateServiceRegistration(registration.ServiceType, registration.ImplementationTypeName, registration.Lifetime, registration.ServiceName));
+            }
 
             var decoration = DecorationMapper.CreateDecoration(type);
             if (decoration is not null)
