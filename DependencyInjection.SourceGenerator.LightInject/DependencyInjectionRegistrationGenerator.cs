@@ -10,18 +10,45 @@ using DependencyInjection.SourceGenerator.Shared;
 namespace DependencyInjection.SourceGenerator.LightInject;
 
 [Generator]
-public class DependencyInjectionRegistrationGenerator : ISourceGenerator
+public class DependencyInjectionRegistrationGenerator : IIncrementalGenerator
 {
-    public void Initialize(GeneratorInitializationContext context)
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterForSyntaxNotifications(() => new ClassAttributeReceiver(additionalClassAttributes: [nameof(RegisterCompositionRootAttribute)]));
+        //context.RegisterForSyntaxNotifications(() => new ClassAttributeReceiver(additionalClassAttributes: [nameof(RegisterCompositionRootAttribute)]));
+
+        var receiver = new ClassAttributeReceiver(additionalClassAttributes: [nameof(RegisterCompositionRootAttribute)]);
+        var classProvider = context.SyntaxProvider
+                   .CreateSyntaxProvider((node, _) =>
+                   {
+                       if (node is not CompilationUnitSyntax compilationUnitSyntax)
+                           return false;
+
+                       foreach (var namespaceDeclarationSyntax in compilationUnitSyntax.Members.OfType<BaseNamespaceDeclarationSyntax>())
+                       {
+                           foreach (var classDeclarationSyntax in namespaceDeclarationSyntax.Members.OfType<ClassDeclarationSyntax>())
+                           {
+                               if (receiver.HasAttribute(classDeclarationSyntax))
+                                   return true;
+                           }
+                       }
+
+                       return false;
+                   },
+                   (ctx, _) =>
+                   {
+                       return (ctx.SemanticModel, (CompilationUnitSyntax)ctx.Node);
+                   });
+
+        context.RegisterSourceOutput(classProvider, Generate);
     }
 
-    public void Execute(GeneratorExecutionContext context)
+    private void Generate(SourceProductionContext context, (SemanticModel, CompilationUnitSyntax) input)
     {
+        var model = input.Item1;
+        var compilation = input.Item2;
         // Get first existing CompositionRoot class
-        var compositionRoot = context.Compilation.SyntaxTrees
-            .SelectMany(x => x.GetRoot().DescendantNodes())
+        var compositionRoot = compilation.SyntaxTree
+            .GetRoot().DescendantNodes()
             .OfType<ClassDeclarationSyntax>()
             .FirstOrDefault(x => x.Identifier.Text == "CompositionRoot");
 
@@ -43,7 +70,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         context.AddSource("CompositionRoot.g.cs", SourceText.From(sourceText, Encoding.UTF8));
     }
 
-    internal static string GetDefaultNamespace(GeneratorExecutionContext context, ClassDeclarationSyntax? compositionRoot)
+    internal static string GetDefaultNamespace(SourceProductionContext context, ClassDeclarationSyntax? compositionRoot)
     {
         if (compositionRoot?.Parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax)
             return namespaceDeclarationSyntax.Name.ToString();
@@ -72,7 +99,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         throw new NotSupportedException("Unable to calculate namespace");
     }
 
-    private static CompilationUnitSyntax GenerateCompositionRoot(GeneratorExecutionContext context, bool userDefinedCompositionRoot, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister, List<Registration> additionalRegistrations)
+    private static CompilationUnitSyntax GenerateCompositionRoot(SourceProductionContext context, bool userDefinedCompositionRoot, string @namespace, IEnumerable<INamedTypeSymbol> classesToRegister, List<Registration> additionalRegistrations)
     {
         var modifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
 
@@ -130,7 +157,7 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         return Trivia.CreateCompilationUnitSyntax(classDeclaration, @namespace);
     }
 
-    internal static ExpressionStatementSyntax? CreateRegistrationExtensions(GeneratorExecutionContext context, INamedTypeSymbol type)
+    internal static ExpressionStatementSyntax? CreateRegistrationExtensions(SourceProductionContext context, INamedTypeSymbol type)
     {
         var attribute = TypeHelper.GetAttributes<RegisterCompositionRootAttribute>(type.GetAttributes()).FirstOrDefault();
         if (attribute is null)

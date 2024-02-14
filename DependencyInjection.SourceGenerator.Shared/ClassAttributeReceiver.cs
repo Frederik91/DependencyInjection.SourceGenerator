@@ -33,7 +33,7 @@ public class ClassAttributeReceiver : ISyntaxContextReceiver
             EvaluateClass(context, classDeclarationSyntax);
     }
 
-    private void EvaluateClass(GeneratorSyntaxContext context, ClassDeclarationSyntax classDeclarationSyntax)
+    public void EvaluateClass(GeneratorSyntaxContext context, ClassDeclarationSyntax classDeclarationSyntax)
     {
         if (!HasAttribute(classDeclarationSyntax))
             return;
@@ -46,7 +46,7 @@ public class ClassAttributeReceiver : ISyntaxContextReceiver
         Classes.Add(classSymbol);
     }
 
-    protected bool HasAttribute(ClassDeclarationSyntax classDeclarationSyntax)
+    public bool HasAttribute(ClassDeclarationSyntax classDeclarationSyntax)
     {
         var attributeLists = classDeclarationSyntax.AttributeLists;
         if (HasAttribute(attributeLists, _classAttributes))
