@@ -1,4 +1,5 @@
 ﻿using DependencyInjection.SourceGenerator.Contracts.Attributes;
+using DependencyInjection.SourceGenerator.Contracts.Enums;
 using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,7 @@ internal static class TypeHelper
         {
             if (attribute.AttributeClass is null)
                 continue;
-            
+
             var attributeName = "global::" + attribute.AttributeClass.ContainingNamespace + "." + attribute.AttributeClass.Name;
 
             if (fullName == attributeName)
@@ -56,6 +57,35 @@ internal static class TypeHelper
         return default;
     }
 
+    internal static Lifetime? GetLifetimeFromAttribute(AttributeData attribute)
+    {
+        var lifetimeArgument = attribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Lifetime");
+        if (!lifetimeArgument.Value.IsNull && IsLifetimeType(lifetimeArgument.Value.Type) && TryParseLifetime(lifetimeArgument.Value.Value, out var lifetime))
+            return lifetime;
+
+        foreach (var argument in attribute.ConstructorArguments)
+        {
+            if (IsLifetimeType(argument.Type) && TryParseLifetime(argument.Value, out lifetime))
+            {
+                return lifetime;
+            }
+
+        }
+
+        return default;
+
+        bool IsLifetimeType(ITypeSymbol? typeSymbol)
+        {
+            return typeSymbol?.TypeKind == TypeKind.Enum && typeSymbol.Name == "Lifetime";
+        }
+
+        bool TryParseLifetime(object? obj, out Lifetime lifetime)
+        {
+            lifetime = default;
+            return obj?.ToString() is { } lifetimeText && Enum.TryParse(lifetimeText, out lifetime);
+        }
+    }
+
     internal static bool IsSameType(INamedTypeSymbol type1, INamedTypeSymbol type2)
     {
         if (GetFullName(type1) == GetFullName(type2, type1.ContainingNamespace))
@@ -75,11 +105,8 @@ internal static class TypeHelper
             return new(serviceType, serviceTypeName);
         }
 
-        var interfaceType = type.Interfaces.FirstOrDefault();
-
-        if (interfaceType is null)
-        {           
-            
+        if (type.Interfaces.Length == 0)
+        {
             if (type.BaseType is null || IsSystemObject(type.BaseType))
             {
                 return new(type, GetFullName(type));
@@ -88,13 +115,26 @@ internal static class TypeHelper
             return new(type.BaseType, baseTypeName);
         }
 
-        var interfaceTypeName = GetFullName(interfaceType, type.ContainingNamespace);
-        return new(interfaceType, interfaceTypeName);
+        foreach (var interfaceType in type.Interfaces)
+        {
+            if (IsEquatable(interfaceType))
+                continue;
+
+            var interfaceTypeName = GetFullName(interfaceType, type.ContainingNamespace);
+            return new(interfaceType, interfaceTypeName);
+        }
+
+        return new(type, GetFullName(type));
+    }
+
+    private static bool IsEquatable(INamedTypeSymbol baseType)
+    {
+        return baseType.Name == "IEquatable" && baseType.ContainingNamespace.Name == "System";
     }
 
     private static bool IsSystemObject(INamedTypeSymbol type)
     {
-        return type.Name == "Object" && type.ContainingNamespace.Name == "System";        
+        return type.Name == "Object" && type.ContainingNamespace.Name == "System";
     }
 
     internal static string GetFullName(ITypeSymbol type, INamespaceSymbol? fallbackNamespace = null)
@@ -110,7 +150,7 @@ internal static class TypeHelper
 
     internal static object? GetConstructorArgumentValue<TType>(AttributeData attribute)
     {
-        return attribute.ConstructorArguments.FirstOrDefault(x => x.Type?.Name == typeof(TType).Name).Value;        
+        return attribute.ConstructorArguments.FirstOrDefault(x => x.Type?.Name == typeof(TType).Name).Value;
     }
 }
 

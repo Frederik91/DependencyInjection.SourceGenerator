@@ -12,7 +12,7 @@ public class ClassAttributeReceiver : ISyntaxContextReceiver
     private readonly string[] _methodAttributes = [];
     private readonly string[] _assemblyAttributes = [nameof(RegisterAllAttribute)];
 
-    public List<INamedTypeSymbol> Classes { get; } = [];
+    public List<INamedTypeSymbol> Types { get; } = [];
 
     public ClassAttributeReceiver(string[]? additionalAssemblyAttributes = null, string[]? additionalClassAttributes = null, string[]? additionalMethodAttributes = null)
     {
@@ -29,24 +29,24 @@ public class ClassAttributeReceiver : ISyntaxContextReceiver
 
     public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
     {
-        if (context.Node is ClassDeclarationSyntax classDeclarationSyntax)
-            EvaluateClass(context, classDeclarationSyntax);
+        if (context.Node is TypeDeclarationSyntax typeDeclarationSyntax)
+            EvaluateClass(context, typeDeclarationSyntax);
     }
 
-    private void EvaluateClass(GeneratorSyntaxContext context, ClassDeclarationSyntax classDeclarationSyntax)
+    private void EvaluateClass(GeneratorSyntaxContext context, TypeDeclarationSyntax typeDeclarationSyntax)
     {
-        if (!HasAttribute(classDeclarationSyntax))
+        if (!HasAttribute(typeDeclarationSyntax))
             return;
 
-        if (context.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax) is not INamedTypeSymbol classSymbol)
+        if (context.SemanticModel.GetDeclaredSymbol(typeDeclarationSyntax) is not INamedTypeSymbol typeSymbol)
         {
             return;
         }
 
-        Classes.Add(classSymbol);
+        Types.Add(typeSymbol);
     }
 
-    protected bool HasAttribute(ClassDeclarationSyntax classDeclarationSyntax)
+    protected bool HasAttribute(TypeDeclarationSyntax classDeclarationSyntax)
     {
         var attributeLists = classDeclarationSyntax.AttributeLists;
         if (HasAttribute(attributeLists, _classAttributes))
