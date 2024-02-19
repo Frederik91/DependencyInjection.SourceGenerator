@@ -23,9 +23,7 @@ internal static class RegistrationMapper
             if (serviceType is null)
                 continue;
 
-            var lifetimeValue = TypeHelper.GetAttributeValue(attribute, nameof(RegisterAttribute.Lifetime));
-            if (!Enum.TryParse<Lifetime>(lifetimeValue?.ToString(), out var lifetime))
-                lifetime = new RegisterAttribute().Lifetime;
+            var lifetime = TypeHelper.GetLifetimeFromAttribute(attribute) ?? Lifetime.Transient;
 
             var serviceNameArgument = TypeHelper.GetAttributeValue(attribute, nameof(RegisterAttribute.ServiceName));
 

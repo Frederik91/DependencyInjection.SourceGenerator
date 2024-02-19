@@ -421,4 +421,31 @@ public class CompositionRoot : global::LightInject.ICompositionRoot
 
         await RunTestAsync(code, expected);
     }
+
+    [Fact]
+    public async Task RegisterRecord()
+    {
+        var code = """
+
+using DependencyInjection.SourceGenerator.Contracts.Attributes;
+
+namespace DependencyInjection.SourceGenerator.LightInject.Demo;
+
+[Register]
+public record Service();
+
+""";
+
+        var expected = _header + """
+public class CompositionRoot : global::LightInject.ICompositionRoot
+{
+    public void Compose(global::LightInject.IServiceRegistry serviceRegistry)
+    {
+        serviceRegistry.Register<global::DependencyInjection.SourceGenerator.LightInject.Demo.Service>(new global::LightInject.PerRequestLifeTime());
+    }
+}
+""";
+
+        await RunTestAsync(code, expected);
+    }
 }

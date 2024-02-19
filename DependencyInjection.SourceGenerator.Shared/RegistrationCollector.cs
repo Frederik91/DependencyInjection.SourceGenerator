@@ -15,7 +15,7 @@ internal static class RegistrationCollector
             return [];
         }
 
-        return receiver.Classes;
+        return receiver.Types;
     }
 
 
@@ -30,17 +30,13 @@ internal static class RegistrationCollector
             if (serviceType is null)
                 continue;
 
-            var lifetime = TypeHelper.GetAttributeValue(registerAllAttribute, nameof(RegisterAllAttribute.Lifetime));
-            if (lifetime is null)
-                lifetime = TypeHelper.GetConstructorArgumentValue<Lifetime>(registerAllAttribute);
-            if (!Enum.TryParse<Lifetime>(lifetime?.ToString(), out var lifetimeValue))
-                lifetimeValue = Lifetime.Transient;
+            var lifetime = TypeHelper.GetLifetimeFromAttribute(registerAllAttribute) ?? Lifetime.Transient;
 
             var includeServiceName = TypeHelper.GetAttributeValue(registerAllAttribute, nameof(RegisterAllAttribute.IncludeServiceName));
             if (!bool.TryParse(includeServiceName?.ToString(), out var includeServiceNameValue))
                 includeServiceNameValue = false;
 
-            var registrations = GetImplementedTypes(serviceType, context, lifetimeValue, includeServiceNameValue);
+            var registrations = GetImplementedTypes(serviceType, context, lifetime, includeServiceNameValue);
             result.AddRange(registrations);
         }
 
