@@ -8,10 +8,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="LightInject" Version="6"/>
-	</ItemGroup>
-	
-	<ItemGroup>
 		<ProjectReference Include="..\DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj" />
 	</ItemGroup>
 
