@@ -6,33 +6,6 @@
 	  <PackageDescription>Contains types used to set up dependency injection registrations for Microsoft.Extensions.DependencyInjection</PackageDescription>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Scrutor" Version="3.0.1" />
-	</ItemGroup>
-
-	<Choose>
-		<When Condition="$(TargetFramework) == 'net6.0'">
-			<ItemGroup>
-				<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
-			</ItemGroup>
-		</When>
-		<When Condition="$(TargetFramework) == 'net7.0'">
-			<ItemGroup>
-				<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
-			</ItemGroup>
-		</When>
-		<When Condition="$(TargetFramework) == 'net8.0'">
-			<ItemGroup>
-				<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
-			</ItemGroup>
-		</When>
-		<Otherwise>
-			<ItemGroup>
-				<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.25" />
-			</ItemGroup>
-		</Otherwise>
-	</Choose>
 	
 	<ItemGroup>
     <ProjectReference Include="..\DependencyInjection.SourceGenerator.Contracts\DependencyInjection.SourceGenerator.Contracts.csproj" />
