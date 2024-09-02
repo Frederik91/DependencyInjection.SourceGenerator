@@ -6,6 +6,7 @@ using System.Text;
 using DependencyInjection.SourceGenerator.LightInject.Contracts.Attributes;
 using DependencyInjection.SourceGenerator.Contracts.Enums;
 using DependencyInjection.SourceGenerator.Shared;
+using CodeGenHelpers;
 
 namespace DependencyInjection.SourceGenerator.LightInject;
 
@@ -19,6 +20,8 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
 
     public void Execute(GeneratorExecutionContext context)
     {
+        var attributeBuilder = CreateAttributeBuilder();
+
         // Get first existing CompositionRoot class
         var compositionRoot = context.Compilation.SyntaxTrees
             .SelectMany(x => x.GetRoot().DescendantNodes())
@@ -41,6 +44,39 @@ public class DependencyInjectionRegistrationGenerator : ISourceGenerator
         var source = GenerateCompositionRoot(context, compositionRoot is not null, @namespace, classesToRegister, registerAllTypes);
         var sourceText = source.ToFullString();
         context.AddSource("CompositionRoot.g.cs", SourceText.From(sourceText, Encoding.UTF8));
+    }
+
+    private object CreateAttributeBuilder()
+    {
+        var ns = CodeBuilder.Create("DependencyInjection.SourceGenerator.Contracts.Attributes")
+            .AddNamespaceImport("DependencyInjection.SourceGenerator.Contracts.Enums");
+
+        ns.AddClass("RegisterAttribute")
+        .SetBaseClass("Attribute")
+        .AddAttribute("AttributeUsage")
+            .("AttributeTargets.Class")
+            .AddArgument("AllowMultiple", "true")
+       .AddProperty("Lifetime", Accessibility.Public)
+           .SetType("Lifetime")
+           .WithValue("Lifetime.Transient")
+       .AddProperty("ServiceName", Accessibility.Public)
+           .SetType("string?")
+           .UseAutoProps()
+       .AddProperty("ServiceType", Accessibility.Public)
+       .SetType("Type?")
+       .UseAutoProps();
+
+        ns.AddClass("RegisterAttribute<TServiceType>")
+            .AddProperty("Lifetime", Accessibility.Public)
+                .SetType("Lifetime")
+                .WithValue("Lifetime.Transient")
+            .AddProperty("ServiceName", Accessibility.Public)
+                .SetType("string?")
+                .UseAutoProps();
+            
+
+
+        Console.WriteLine(builder.Build());
     }
 
     internal static string GetDefaultNamespace(GeneratorExecutionContext context, ClassDeclarationSyntax? compositionRoot)
