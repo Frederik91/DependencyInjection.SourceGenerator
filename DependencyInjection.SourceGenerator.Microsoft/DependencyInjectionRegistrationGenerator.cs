@@ -1,8 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
+using System.Collections.Generic;
 using DependencyInjection.SourceGenerator.Microsoft.Helpers;
 using System.Collections.Immutable;
 using DependencyInjection.SourceGenerator.Microsoft.Enums;
@@ -32,6 +34,7 @@ public class DependencyInjectionRegistrationGenerator : IIncrementalGenerator
             spc.AddSource("RegisterAttribute.g.cs", SourceText.From(AttributeSourceTexts.RegisterAttributeText, Encoding.UTF8));
             spc.AddSource("RegisterAllAttribute.g.cs", SourceText.From(AttributeSourceTexts.RegisterAllAttributeText, Encoding.UTF8));
             spc.AddSource("DecorateAttribute.g.cs", SourceText.From(AttributeSourceTexts.DecorateAttributeText, Encoding.UTF8));
+            spc.AddSource("FactoryArgumentAttribute.g.cs", SourceText.From(AttributeSourceTexts.FactoryArgumentAttributeText, Encoding.UTF8));
         });
     }
 
@@ -84,6 +87,8 @@ public class DependencyInjectionRegistrationGenerator : IIncrementalGenerator
         var extensionName = "Add" + safeAssemblyName;
 
         var bodyMembers = new List<ExpressionStatementSyntax>();
+        var factoryRegistrations = new List<FactoryRegistration>();
+        var factoryKeys = new HashSet<string>(StringComparer.Ordinal);
 
         var includeScrutor = false;
 
@@ -91,7 +96,7 @@ public class DependencyInjectionRegistrationGenerator : IIncrementalGenerator
         {
             if (symbol is INamedTypeSymbol classSymbol)
             {
-                var hasDecorators = ProcessClassSymbol(classSymbol, bodyMembers);
+                var hasDecorators = ProcessClassSymbol(classSymbol, bodyMembers, factoryRegistrations, factoryKeys);
                 if (hasDecorators)
                 {
                     includeScrutor = true;
@@ -105,26 +110,63 @@ public class DependencyInjectionRegistrationGenerator : IIncrementalGenerator
 
         RegisterAllHandler.Process(compilation, bodyMembers);
 
+        var generatorVersion = typeof(DependencyInjectionRegistrationGenerator).Assembly.GetName().Version?.ToString() ?? "1.0.0.0";
+
         var source = GenerateExtensionMethod(extensionName, @namespace, bodyMembers, includeScrutor);
         var sourceText = source.ToFullString();
         context.AddSource("ServiceRegistrations.g.cs", SourceText.From(sourceText, Encoding.UTF8));
+
+        foreach (var factoryRegistration in factoryRegistrations)
+        {
+            var factoryUnit = FactoryMapper.CreateFactoryCompilationUnit(factoryRegistration, generatorVersion);
+            var factorySource = factoryUnit.ToFullString();
+            var hintName = FactoryMapper.CreateFactoryHintName(factoryRegistration);
+            context.AddSource(hintName, SourceText.From(factorySource, Encoding.UTF8));
+        }
     }
 
-    private static bool ProcessClassSymbol(INamedTypeSymbol classSymbol, List<ExpressionStatementSyntax> bodyMembers)
+    private static bool ProcessClassSymbol(
+        INamedTypeSymbol classSymbol,
+        List<ExpressionStatementSyntax> bodyMembers,
+        List<FactoryRegistration> factoryRegistrations,
+        HashSet<string> factoryKeys)
     {
         var registrations = RegistrationMapper.CreateRegistration(classSymbol);
-        foreach (var registration in registrations)
+        var factoryParameters = FactoryMapper.GetFactoryParameters(classSymbol);
+
+        if (factoryParameters is { Count: > 0 })
         {
-            var (registrationExpression, factoryExpression) = RegistrationMapper.CreateRegistrationSyntaxFromClass(
-                registration.ServiceType,
-                registration.ImplementationTypeName,
-                registration.Lifetime,
-                registration.ServiceName,
-                registration.IncludeFactory);
-            bodyMembers.Add(registrationExpression);
-            if (factoryExpression is not null)
+            foreach (var registration in registrations)
             {
-                bodyMembers.Add(factoryExpression);
+                var factoryRegistration = FactoryMapper.CreateFactoryRegistration(registration, factoryParameters);
+                if (factoryRegistration is null)
+                {
+                    continue;
+                }
+
+                var key = $"{factoryRegistration.Namespace}|{factoryRegistration.InterfaceName}";
+                if (factoryKeys.Add(key))
+                {
+                    factoryRegistrations.Add(factoryRegistration);
+                    bodyMembers.Add(FactoryMapper.CreateFactoryRegistrationExpression(factoryRegistration));
+                }
+            }
+        }
+        else
+        {
+            foreach (var registration in registrations)
+            {
+                var (registrationExpression, factoryExpression) = RegistrationMapper.CreateRegistrationSyntaxFromClass(
+                    registration.ServiceType,
+                    registration.ImplementationTypeName,
+                    registration.Lifetime,
+                    registration.ServiceName,
+                    registration.IncludeFactory);
+                bodyMembers.Add(registrationExpression);
+                if (factoryExpression is not null)
+                {
+                    bodyMembers.Add(factoryExpression);
+                }
             }
         }
 
