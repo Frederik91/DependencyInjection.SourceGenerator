@@ -42,10 +42,12 @@ internal static class RegistrationMapper
             var registration = new ClassRegistration
             {
                 ImplementationTypeName = implementationTypeName,
+                ImplementationTypeSymbol = type,
                 Lifetime = lifetime,
                 IncludeFactory = includeFactory,
                 ServiceName = serviceName,
-                ServiceType = serviceType?.Name
+                ServiceType = serviceType?.Name,
+                ServiceTypeSymbol = serviceType?.Type
             };
             result.Add(registration);
         }

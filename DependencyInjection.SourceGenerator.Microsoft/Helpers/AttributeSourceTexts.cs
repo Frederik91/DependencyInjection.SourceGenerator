@@ -45,6 +45,16 @@ namespace Microsoft.Extensions.DependencyInjection
     }
 }";
 
+    public const string FactoryArgumentAttributeText = @"
+#nullable enable
+namespace Microsoft.Extensions.DependencyInjection
+{
+    [global::System.AttributeUsage(global::System.AttributeTargets.Parameter)]
+    internal sealed class FactoryArgumentAttribute : global::System.Attribute
+    {
+    }
+}";
+
     public const string RegisterAllAttributeText = @"
 #nullable enable
 namespace Microsoft.Extensions.DependencyInjection

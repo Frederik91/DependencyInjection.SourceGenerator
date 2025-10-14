@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+namespace DependencyInjection.SourceGenerator.Benchmarks;
 
 #pragma warning disable CS9113 
 

@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using System;
 using System.Collections.Immutable;
 using FluentAssertions;
 using Microsoft.CodeAnalysis.CSharp;
@@ -55,13 +56,22 @@ public class DependencyInjectionRegistrationGeneratorTests
 
         foreach (var syntaxTree in outputCompilation.SyntaxTrees)
         {
-            if (syntaxTree.FilePath.EndsWith("ServiceRegistrations.g.cs") == false)
+            var fileName = Path.GetFileName(syntaxTree.FilePath);
+            if (fileName is null)
+            {
                 continue;
+            }
+
+            if (fileName.EndsWith("ServiceRegistrations.g.cs", StringComparison.Ordinal) == false &&
+                fileName.EndsWith("Factory.g.cs", StringComparison.Ordinal) == false)
+            {
+                continue;
+            }
 
             var generatedSource = syntaxTree.ToString().Replace("\r\n", "\n");
             var settings = new VerifySettings();
             settings.UseDirectory("TestResults");
-            settings.UseFileName(methodName + "_" + Path.GetFileNameWithoutExtension(syntaxTree.FilePath));
+            settings.UseFileName(methodName + "_" + Path.GetFileNameWithoutExtension(fileName));
             await Verifier.Verify(generatedSource, settings);
         }
     }
@@ -121,6 +131,34 @@ namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
 public class Service : IService {}
 public interface IService {}
 
+""";
+
+        await RunTestAsync(code);
+    }
+
+    [Fact]
+    public async Task Register_WithFactoryArguments()
+    {
+        var code = """
+using global::Microsoft.Extensions.DependencyInjection;
+
+namespace DependencyInjection.SourceGenerator.Microsoft.Demo;
+
+[Register(ServiceType = typeof(IReportJob), Lifetime = ServiceLifetime.Scoped)]
+public sealed class ReportJob : IReportJob
+{
+    public ReportJob(IDependency dependency, [FactoryArgument] System.Guid reportId)
+    {
+    }
+}
+
+public interface IReportJob
+{
+}
+
+public interface IDependency
+{
+}
 """;
 
         await RunTestAsync(code);

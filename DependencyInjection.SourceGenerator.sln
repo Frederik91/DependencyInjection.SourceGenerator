@@ -12,11 +12,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Files", "Files", "{5387CF4F
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceGenerator.Microsoft", "DependencyInjection.SourceGenerator.Microsoft\DependencyInjection.SourceGenerator.Microsoft.csproj", "{90EAE615-66EA-4AC4-B25C-6970F017700A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyInjection.SourceGenerator.Microsoft.Tests", "DependencyInjection.SourceGenerator.Microsoft.Tests\DependencyInjection.SourceGenerator.Microsoft.Tests.csproj", "{E42AD1F2-3243-4E90-9C01-07E38577925E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DependencyInjection.SourceGenerator.Microsoft.Tests", "DependencyInjection.SourceGenerator.Microsoft.Tests\DependencyInjection.SourceGenerator.Microsoft.Tests.csproj", "{E42AD1F2-3243-4E90-9C01-07E38577925E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{307324C8-0321-4E96-8C4B-5566A672364A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DependencyInjection.SourceGenerator.Microsoft.Demo", "DependencyInjection.SourceGenerator.Microsoft.Demo\DependencyInjection.SourceGenerator.Microsoft.Demo.csproj", "{5F349F60-524E-49C2-BF0A-D50C2491AB49}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DependencyInjection.SourceGenerator.Benchmarks", "DependencyInjection.SourceGenerator.Benchmarks\DependencyInjection.SourceGenerator.Benchmarks.csproj", "{C6F38CA4-602E-42DE-8132-307DB4628A76}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +38,10 @@ Global
 		{5F349F60-524E-49C2-BF0A-D50C2491AB49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F349F60-524E-49C2-BF0A-D50C2491AB49}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F349F60-524E-49C2-BF0A-D50C2491AB49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6F38CA4-602E-42DE-8132-307DB4628A76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6F38CA4-602E-42DE-8132-307DB4628A76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6F38CA4-602E-42DE-8132-307DB4628A76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6F38CA4-602E-42DE-8132-307DB4628A76}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
